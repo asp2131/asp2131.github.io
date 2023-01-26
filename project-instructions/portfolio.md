@@ -365,75 +365,20 @@ Let's add some style!
 
 **CODE:**
 
-- **6b)** Within the `<head>` tag, but under the `<title>` tag you just created in the last step, copy and paste in the following CSS from the opening to the closing `<style></style>` tags:
-
-  ```CSS
-       <style type="text/css">
-           body {
-               background: rgb(125, 198, 205);
-               color: rgb(45, 45, 45);
-               padding: 10px;
-               font-family: arial;
-           }
-           header {
-               font-size: 1.5em;
-               font-weight: bold;
-           }
-
-           #all-contents {
-               max-width: 800px;
-               margin: auto;
-           }
-
-           /* navigation menu */
-           nav {
-               background: rgb(239, 80, 41);
-               margin: 0 auto;
-               display: flex;
-               padding: 10px;
-           }
-           h1 {
-               display: flex;
-               align-items: center;
-               color: rgb(255, 255, 255);
-               flex: 1;
-               margin: 0;
-           }
-           #nav-ul {
-               list-style-image: none;
-           }
-           .nav-li {
-               display: inline-block;
-               padding: 0 10px;
-           }
-           .nav-a {
-               text-decoration: none;
-               color: #fff;
-           }
-
-           /* main container area beneath menu */
-           main {
-               background: rgb(245, 238, 219);
-               display: flex;
-           }
-           .content {
-               flex: 1;
-               padding: 15px;
-           }
-       </style>
-  ```
-
-  - We want our portfolio page to fit with our Home page so copy over any changes you made to the CSS in `index.html`!
+- **6b)** Inside the `<head>` below the `<title>` tag, add a `<link>` tag with a `rel="stylesheet"` attribute and an `href="style.css"` attribute. This will apply all of the same CSS rules from your home page to your portfolio page, so all colors and other styles will be synced between both pages. Any time you make changes to the `style.css` file, the style will be updated on both pages.
 
 ### **TODO 6:** _Part 2, Style the portfolio_
 
+There are a couple id and class attributes in your `portfolio.html` file that are not found in your `index.html` file, so we'll have to add in some new CSS rules to our `style.css` file.
+
 **FIND:**
 
-- **6c)** Find the `.content` style block within your css style rules you copied in the last step.
+- **6c)** Go ahead and open your `style.css` file.
 
 **CODE:**
 
-- **6d)** Now add some styling that is unique to portfolio. The CSS rules below contain composite rules, which we haven't covered in class, so feel free to simply paste this below the `.content` block:
+- **6c)** Now add some styling that is unique to portfolio. The CSS rules below contain composite rules, which we haven't covered in class, so feel free to simply paste this at the very bottom of the `style.css` file:
+
   ```CSS
            /* portfolio styles */
            .content h1 {
@@ -464,13 +409,12 @@ Let's add some style!
 
 ### **Extra Challenge**
 
-At the end of the last lesson, first website, you might have tricked-out your `index.html` page by altering or adding custom CSS, so you may want to take the time to match the CSS styles in your `index.html` page to those here in your `portfolio.html` page.
-
 Here's some other things to try:
 
 - Google 'border radius' and add it to the nav selector to give the `<nav>` element rounded corners
 - Add a border around the image
 - Change the color of the background
+- Add a favicon to your `index.html` and `portfolio.html` files
 
 ### **TODO 7 :** _Go Live_
 
