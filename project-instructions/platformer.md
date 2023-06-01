@@ -81,17 +81,17 @@ This Function call will create a platform with an (x,y) location of `(400, 200)`
 
 - Keep your code in between the areas **ONLY CHANGE BELOW THIS POINT** and **ONLY CHANGE ABOVE THIS POINT**. This will help you make less errors. The comments you see will look something like this:
 
-      ```javascript
-      /////////////////////////////////////////////////
-      //////////ONLY CHANGE BELOW THIS POINT///////////
-      /////////////////////////////////////////////////
+```javascript
+/////////////////////////////////////////////////
+//////////ONLY CHANGE BELOW THIS POINT///////////
+/////////////////////////////////////////////////
 
-      createCollectable(type.steve, 200, 170, 6, 0.7); //your example function call
+createCollectable("steve", 200, 170, 6, 0.7); //your example function call
 
-      /////////////////////////////////////////////////
-      //////////ONLY CHANGE ABOVE THIS POINT///////////
-      /////////////////////////////////////////////////
-      ```
+/////////////////////////////////////////////////
+//////////ONLY CHANGE ABOVE THIS POINT///////////
+/////////////////////////////////////////////////
+```
 
 **TO PREVIEW YOUR WORK:**
 
@@ -167,16 +167,18 @@ Code a little, **save your work** (Command / Ctrl + s), switch back to the tab r
 
 - **GOAL:** Add as many collectibles as necessary (at least 3). You also need to add at least 3 **different** types to your game, and remember to make your level challenging.
 
-  <details><summary>See the 'types' of collectibles you can add to your game:</summary>  
-  > Below are the following `types` available: 
-  >```javascript 
-  >type.db 
-  >type.max 
-  >type.steve 
-  >type.grace 
-  >type.kennedi 
-  >```
-  </details>
+> <details>
+> <summary>Below are the following 'types' of collectibles you can add to your game:</summary>  
+>  
+> ```javascript 
+> "database" 
+> "max" 
+> "steve" 
+> "grace" 
+> "kennedi" 
+> ```
+> </details>
+
 <hr>
 
 ## **TODO 3:** _Cannons_

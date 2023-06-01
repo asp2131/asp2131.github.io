@@ -1,10 +1,10 @@
 // setup variables
-const walkAcceleration = 2.5;  // how much is added to the speed each frame
-const gravity = 0.5;           // how much is subtracted from speedY each frame
-const friction = 1.5;          // how much the player is slowed each frame
-const maxSpeed = 8;            // maximum horizontal speed, not vertical
+const walkAcceleration = 2.5; // how much is added to the speed each frame
+const gravity = 0.5; // how much is subtracted from speedY each frame
+const friction = 1.5; // how much the player is slowed each frame
+const maxSpeed = 8; // maximum horizontal speed, not vertical
 const playerJumpStrength = 12; // this is subtracted from the speedY each jump
-const projectileSpeed = 8;     // the speed of projectiles
+const projectileSpeed = 8; // the speed of projectiles
 
 /////////////////////////////////////////////////
 //////////ONLY CHANGE ABOVE THIS POINT///////////
@@ -57,6 +57,8 @@ const animationTypes = {
 let currentAnimationType = animationTypes.run;
 let frameIndex = 0;
 let jumpTimer = 0;
+let duckTimer = 0;
+let DUCK_COUNTER_IDLE_VALUE = 14;
 let debugVar = false;
 
 let spriteHeight = 0;
@@ -72,8 +74,8 @@ let cannons = [];
 const cannonWidth = 118;
 const cannonHeight = 80;
 let projectiles = [];
-const projectileWidth = 24;
-const projectileHeight = projectileWidth;
+const defaultProjectileWidth = 24;
+const defaultProjectileHeight = defaultProjectileWidth;
 const collectableWidth = 40;
 const collectableHeight = 40;
 let collectables = [];

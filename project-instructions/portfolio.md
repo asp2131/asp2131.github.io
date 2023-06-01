@@ -25,8 +25,8 @@ Show off your peacock feathers as you begin to spread your wings and take flight
     - [TODO 4 : Create the Main Content](#todo-4--create-the-main-content)
     - [Checking Your Work](#checking-your-work)
     - [TODO 5 : Link Your Future Projects](#todo-5--link-your-future-projects)
-    - [TODO 6: Part 1, Add CSS](#todo-6-part-1-add-css)
-    - [TODO 6: Part 2, Style the Portfolio](#todo-6-part-2-style-the-portfolio)
+    - [TODO 6: Part 1, Add CSS](#todo-6-part-1--add-css)
+    - [TODO 6: Part 2, Style the Portfolio](#todo-6-part-2--style-the-portfolio)
     - [Extra Challenge](#extra-challenge)
     - [TODO 7 : Go Live](#todo-7--go-live)
 
@@ -174,6 +174,16 @@ Open the workspace where you were working on your website from the 'first websit
 </details>
 <br>
 
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
 ## Lesson Steps
 
 ### **TODO 1 :** _Create Portfolio Page_
@@ -209,6 +219,16 @@ We're going to build the page from scratch:
 
 Great, save the `portfolio.html` file.
 
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
 ### **TODO 2 :** _Add a Title_
 
 **CODE:**
@@ -224,6 +244,16 @@ Great, save the `portfolio.html` file.
   ```
 
    </details>
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ### **TODO 3 :** _Add Navigation_
 
@@ -284,6 +314,16 @@ Great, save the `portfolio.html` file.
 
    </details>
 
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
 ### **TODO 4 :** _Create the Main Content_
 
 Now we want to create a place where our work throughout the course will be displayed.
@@ -322,6 +362,16 @@ So, we created an unordered list with an `id` of `portfolio`. This will allow us
 
 - To check the status of your portfolio, right-click your `portfolio.html` file and select 'Open with Live Server' to view the changes.
 
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
 ### **TODO 5 :** _Link Your Future Projects_
 
 Okay, now it's time to add in the links to your future projects.
@@ -355,7 +405,17 @@ You'll now want to put in the list items, each of which contains an anchor tag. 
 
 Now, save and check to make sure those links appear!
 
-### **TODO 6:** _Part 1, Add CSS_
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+### **TODO 6** _Part 1 : Add CSS_
 
 Let's add some style!
 
@@ -367,7 +427,7 @@ Let's add some style!
 
 - **6b)** Inside the `<head>` below the `<title>` tag, add a `<link>` tag with a `rel="stylesheet"` attribute and an `href="style.css"` attribute. This will apply all of the same CSS rules from your home page to your portfolio page, so all colors and other styles will be synced between both pages. Any time you make changes to the `style.css` file, the style will be updated on both pages.
 
-### **TODO 6:** _Part 2, Style the portfolio_
+### **TODO 6** _Part 2 : Style the portfolio_
 
 There are a couple id and class attributes in your `portfolio.html` file that are not found in your `index.html` file, so we'll have to add in some new CSS rules to our `style.css` file.
 
@@ -415,6 +475,75 @@ Here's some other things to try:
 - Add a border around the image
 - Change the color of the background
 - Add a favicon to your `index.html` and `portfolio.html` files
+- Make website <a href="https://www.w3schools.com/css/css_rwd_mediaqueries.asp">mobile responsive</a>.
+
+<br>
+
+**Note**: If you have preexisting style tags in your `index.html` file, you put the link to your `style.css` file with your responsive style rules at the bottom of the `<head>` tag.
+
+Here's some CSS to get you started on making your website mobile responsive
+
+```CSS
+            /* responsive web design */
+            @media screen and (min-width: 120px) and (max-width: 1080px) {
+              main {
+                height: 100ch;
+                zoom: 1.5;
+                display: grid;
+              }
+
+              h1 {
+                font-size: 44px;
+              }
+
+              h2 {
+                font-size: 42px;
+              }
+
+              h3 {
+                font-size: 36px;
+              }
+
+              #all-contents {
+                height: 100ch;
+                margin: none;
+              }
+
+              a {
+                font-size: 42px;
+              }
+
+              .sidebar {
+                margin-right: 0px;
+                justify-content: center;
+                align-items: center;
+              }
+
+              .sidebar-img {
+                width: 100%;
+              }
+
+              p,
+              li {
+                font-size: 24px;
+              }
+
+              .content {
+                align-content: center;
+                justify-content: center;
+              }
+          }
+```
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ### **TODO 7 :** _Go Live_
 

@@ -82,7 +82,7 @@ function JsonFunction(status, response) {
 function changeAnimationType() {
   if (currentAnimationType === animationTypes.frontDeath) {
     if (
-      frameIndex > animationDetails[currentAnimationType].coordinates.length
+      frameIndex >= animationDetails[currentAnimationType].coordinates.length
     ) {
       player.deadAndDeathAnimationDone = true;
     }
@@ -101,9 +101,18 @@ function changeAnimationType() {
         currentAnimationType = animationTypes.walk;
       }
     } else if (player.onGround) {
-      if (currentAnimationType !== animationTypes.frontIdle) {
+      if (keyPress.down) {
+        currentAnimationType = animationTypes.duck;
+        if (duckTimer < DUCK_COUNTER_IDLE_VALUE) {
+          // not using index 0 because the animation is too slow then
+          frameIndex = 3;
+          duckTimer = DUCK_COUNTER_IDLE_VALUE * 2 - frameIndex;
+        }
+      } else if (
+        duckTimer === 0 ||
+        currentAnimationType === animationTypes.walk
+      ) {
         currentAnimationType = animationTypes.frontIdle;
-        // }
       }
     }
   }
@@ -139,13 +148,20 @@ function debug() {
 }
 
 function animate() {
-  var previousFrameRate = frameIndex;
-  frameIndex = frameIndex + 18 / frameRate; //only advance the animation every other frame
-  if (Math.floor(previousFrameRate) === Math.floor(frameIndex)) {
-    return;
+  if (
+    !(
+      keyPress.down &&
+      duckTimer === DUCK_COUNTER_IDLE_VALUE &&
+      currentAnimationType === animationTypes.duck
+    )
+  ) {
+    frameIndex = frameIndex + 15 / frameRate;
+    if (duckTimer > 0) {
+      duckTimer -= 0.25;
+    }
   }
   changeAnimationType();
-  if (frameIndex > animationDetails[currentAnimationType].coordinates.length) {
+  if (frameIndex >= animationDetails[currentAnimationType].coordinates.length) {
     frameIndex = 0;
   }
   spriteX =
@@ -316,20 +332,24 @@ function projectileCollision() {
   for (var i = 0; i < projectiles.length; i++) {
     //this deletes any projectiles that go off the screen
     if (
-      projectiles[i].x > canvas.width + 100 ||
-      projectiles[i].x < -100 ||
-      projectiles[i].y > canvas.height + 100 ||
-      projectiles[i].y < -100
+      projectiles[i].x > canvas.width + 100 + projectiles[i].width ||
+      projectiles[i].x < -100 - projectiles[i].width ||
+      projectiles[i].y > canvas.height + 100 + projectiles[i].height ||
+      projectiles[i].y < -100 - projectiles[i].height
     ) {
       projectiles.splice(i, 1);
+    }
+
+    if (i === projectiles.length) {
+      return;
     }
 
     //collision with the player
     if (
       projectiles[i].x < player.x + hitBoxWidth &&
-      projectiles[i].x + projectileWidth > player.x &&
+      projectiles[i].x + projectiles[i].width > player.x &&
       projectiles[i].y < player.y + hitBoxHeight &&
-      projectiles[i].y + projectileHeight > player.y
+      projectiles[i].y + projectiles[i].height > player.y
     ) {
       currentAnimationType = animationTypes.frontDeath;
       frameIndex = 0;
@@ -362,7 +382,7 @@ function deathOfPlayer() {
   );
   if (keyPress.any) {
     keyPress.any = false;
-    resetVariables();
+    window.location.reload();
   }
 }
 
@@ -373,7 +393,6 @@ function playerFrictionAndGravity() {
   } else if (player.speedX < -maxSpeed) {
     player.speedX = -maxSpeed;
   }
-
   //friction
   if (Math.abs(player.speedX) < 1) {
     //this makes sure that the player actually stops when the speed gets low enough
@@ -408,8 +427,8 @@ function drawProjectiles() {
       projectileImage,
       projectiles[i].x,
       projectiles[i].y,
-      projectileWidth,
-      projectileHeight
+      projectiles[i].width,
+      projectiles[i].height
     );
     projectiles[i].x = projectiles[i].x + projectiles[i].speedX;
     projectiles[i].y = projectiles[i].y + projectiles[i].speedY;
@@ -420,7 +439,13 @@ function drawCannons() {
   for (var i = 0; i < cannons.length; i++) {
     if (cannons[i].projectileCountdown >= cannons[i].timeBetweenShots) {
       cannons[i].projectileCountdown = 0;
-      createProjectile(cannons[i].location, cannons[i].x, cannons[i].y);
+      createProjectile(
+        cannons[i].location,
+        cannons[i].x,
+        cannons[i].y,
+        cannons[i].projectileWidth,
+        cannons[i].projectileHeight
+      );
     } else {
       cannons[i].projectileCountdown = cannons[i].projectileCountdown + 1;
     }
@@ -476,6 +501,7 @@ function drawCollectables() {
         collectables[i].y + collectableHeight > platforms[j].y
       ) {
         //bottom of collectable is below top of platform
+        collectables[i].y = collectables[i].y - collectables[i].speedy;
         collectables[i].speedy *= -collectables[i].bounce;
       }
     }
@@ -499,7 +525,13 @@ function createPlatform(x, y, width, height) {
   platforms.push({ x, y, width, height });
 }
 
-function createCannon(wallLocation, position, timeBetweenShots) {
+function createCannon(
+  wallLocation,
+  position,
+  timeBetweenShots,
+  width = defaultProjectileWidth,
+  height = defaultProjectileHeight
+) {
   if (wallLocation === "top") {
     cannons.push({
       x: position,
@@ -508,6 +540,8 @@ function createCannon(wallLocation, position, timeBetweenShots) {
       projectileCountdown: 0,
       location: wallLocation,
       timeBetweenShots: timeBetweenShots / (1000 / frameRate),
+      projectileWidth: width,
+      projectileHeight: height,
     });
   } else if (wallLocation === "bottom") {
     cannons.push({
@@ -517,6 +551,8 @@ function createCannon(wallLocation, position, timeBetweenShots) {
       projectileCountdown: 0,
       location: wallLocation,
       timeBetweenShots: timeBetweenShots / (1000 / frameRate),
+      projectileWidth: width,
+      projectileHeight: height,
     });
   } else if (wallLocation === "left") {
     cannons.push({
@@ -526,6 +562,8 @@ function createCannon(wallLocation, position, timeBetweenShots) {
       projectileCountdown: 0,
       location: wallLocation,
       timeBetweenShots: timeBetweenShots / (1000 / frameRate),
+      projectileWidth: width,
+      projectileHeight: height,
     });
   } else if (wallLocation === "right") {
     cannons.push({
@@ -535,6 +573,8 @@ function createCannon(wallLocation, position, timeBetweenShots) {
       projectileCountdown: 0,
       location: wallLocation,
       timeBetweenShots: timeBetweenShots / (1000 / frameRate),
+      projectileWidth: width,
+      projectileHeight: height,
     });
   }
 }
@@ -557,7 +597,7 @@ function createCollectable(type, x, y, gravity = 0.1, bounce = 1) {
   }
 }
 
-function createProjectile(wallLocation, x, y) {
+function createProjectile(wallLocation, x, y, width, height) {
   //checking if the player is dead
   if (currentAnimationType === animationTypes.frontDeath) {
     return;
@@ -566,32 +606,45 @@ function createProjectile(wallLocation, x, y) {
   if (wallLocation === "top") {
     projectiles.push({
       x: x - 71.5,
-      y: y - 55,
+      y: y - 55 - height / 2,
       speedX: 0,
       speedY: projectileSpeed,
+      width,
+      height,
     });
   } else if (wallLocation === "bottom") {
     projectiles.push({
       x: x + 47,
-      y: y + 50,
+      y: y + 50 + height / 2,
       speedX: 0,
       speedY: -projectileSpeed,
+      width,
+      height,
     });
   } else if (wallLocation === "left") {
     projectiles.push({
-      x: x - 80,
+      x: x - 80 - width / 2,
       y: y + 46,
       speedX: projectileSpeed,
       speedY: 0,
+      width,
+      height,
     });
   } else if (wallLocation === "right") {
     projectiles.push({
-      x: x + 40,
+      x: x + 40 + width / 2,
       y: y - 71.5,
       speedX: -projectileSpeed,
       speedY: 0,
+      width,
+      height,
     });
   }
+
+  // putting this here instead of in every if
+  projectiles[projectiles.length - 1].x -= (width - defaultProjectileWidth) / 2;
+  projectiles[projectiles.length - 1].y -=
+    (height - defaultProjectileHeight) / 2;
 }
 
 function keyboardControlActions() {
@@ -649,6 +702,10 @@ function handleKeyUp(e) {
   }
   if (e.key === "ArrowDown" || e.key === "s") {
     keyPress.down = false;
+    if (currentAnimationType === animationTypes.duck) {
+      duckTimer = 8;
+      frameIndex = 20;
+    }
   }
   if (e.key === "ArrowRight" || e.key === "d") {
     keyPress.right = false;
