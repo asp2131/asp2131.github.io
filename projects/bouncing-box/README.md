@@ -21,8 +21,7 @@ We're going to create a simple game where a box moves across the screen at an in
 
 <a href="https://output.jsbin.com/goyuhod/9" target="_blank"> When you are done it should look like this (Right Click --> Open in new tab) </a>
 
-![Gameplay gif](https://github.com/OperationSpark/bouncing-box/blob/master/images/bouncing-box.gif?raw=true)
-
+<img src="images/bouncing-box.gif">
 Our goal for this game is to learn how to bring together HTML, CSS, and JavaScript. We used: 
    * HTML to define our structure 
    * CSS to define the style of that structure 
@@ -81,7 +80,16 @@ The `board.width()` Function calculates the width of that `body` element.
 Since the width of the screen, the screen resolution, or the size of the window running the game could all be different, this is the only way for us to know where the edge of the screen is.
 
 </details>
-<hr>
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 # Lesson Steps
 
@@ -92,6 +100,10 @@ Since the width of the screen, the screen resolution, or the size of the window 
 * Select "Preview with Live Server".
 <hr>
 
+<br>
+<br>
+<br>
+
 ## **TODO 1:** *Learn how to move the box*
 
 **IMPORTANT:**This TODO has 2 steps. Make sure to complete all steps before moving on!
@@ -99,6 +111,10 @@ Since the width of the screen, the screen resolution, or the size of the window 
 Moving the box requires us to change the CSS of the box. However, CSS can only be hardcoded - once it is set, it won't change unless the programmer changes it.
 
 Using the `jQuery()` Function we can instead change the CSS with JavaScript code. This will open the door to animation.
+
+<br>
+<br>
+<br>
 
 ### **Part 1: Move the `box` with CSS**
 
@@ -121,6 +137,10 @@ In this first step, we'll see how we can manually move the box using CSS.
                 - `0px` sets the box to the left side of the screen.
 
    * Give the `left` property a final value for the starting position for the `box`.
+
+<br>
+<br>
+<br>
 
 ### **Part 2: Move the `box` with JavaScript**
 
@@ -168,7 +188,16 @@ CSS allows us to hard code a starting position for the box. If we want the posit
 Right now we are still hard-coding this position. We want this value to change over time so that the box moves on its own.
 
 #### **Important:** There should only be one call to `moveBoxTo` inside your `update()` function **at any time during this project**. Always think about if a step is asking you to put in a new line of code before you do. **Extra code can be just as bad as missing code.**
-<hr>
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ## **TODO 2:** *Use Variables to remember where we've been*
 
@@ -187,6 +216,10 @@ The `update` Function is called 20 times/second so we can use it to draw a new F
 Variables allow the computer to remember pieces of information as our program runs. If we create a variable called `positionX`, on each Frame we can:
 - increment the value on each Frame: `positionX = positionX + 10`
 - and then call the Function `moveBoxTo(positionX)`.
+
+<br>
+<br>
+<br>
 
 ## **TODO 2 Part 1:** *Declare your Variable*
 
@@ -215,6 +248,10 @@ Variables allow the computer to remember pieces of information as our program ru
          ```
        </details>
 
+<br>
+<br>
+<br>
+
 ## **TODO 2 Part 2:** *Replace the hard-coded value*
 
 **FIND:** 
@@ -235,7 +272,10 @@ Variables allow the computer to remember pieces of information as our program ru
      };
      ```
 </details>
-<hr>
+
+<br>
+<br>
+<br>
 
 ## **TODO 2 Part 3:** *Increase `positionX` on each Frame*
 
@@ -298,7 +338,16 @@ moveBoxTo(positionX);
 
 // so on...
 ```
-<hr>
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ## **TODO 3:** *Respond to Click Events* 
 
@@ -361,7 +410,15 @@ moveBoxTo(positionX);
 
 // so on...
 ```
-<hr>
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ## **TODO 4:** *Keeping Score*
 
@@ -376,6 +433,10 @@ In order for the box to show the correct number of points, we'll need to:
 - Create a Variable to remember how many times the box has been clicked. 
 - Call the Function using the Variable
 - Increase the value of the Variable each time the box is clicked.
+
+<br>
+<br>
+<br>
 
 ## **TODO 4 Part 1:** *Call the `changeBoxText()` Function*
 
@@ -404,7 +465,9 @@ In order for the box to show the correct number of points, we'll need to:
 
 Again, however, this value is hard-coded. No matter how many times we click on the box, it will only ever change the text to `1`. So we need another Variable!
 
-
+<br>
+<br>
+<br>
 
 ## **TODO 4 Part 2:** *Create a Variable*
 
@@ -414,6 +477,10 @@ Again, however, this value is hard-coded. No matter how many times we click on t
 **CODE:** 
 
 * Declare a new variable called `points` and assign it to the value `0`. 
+
+<br>
+<br>
+<br>
 
 ## **TODO 4 Part 3:** *Replace the hard-coded value*
 
@@ -428,13 +495,17 @@ Again, however, this value is hard-coded. No matter how many times we click on t
    >    positionX = 0;
    >    changeBoxText(1);
    >    
-   >
+   >}
    >```
    ></details>
 
 **CODE** 
 
 * Modify the `changeBoxText()` Function Call so that it uses your new `points` Variable as an argument instead of the hard-coded value `1`.
+
+<br>
+<br>
+<br>
 
 ## **TODO 4 Part 4:** *Increase the value of `points` when the box is clicked*
 
@@ -457,7 +528,16 @@ Our `points` Variable is still hard-coded to the value `0`. If we want it to inc
    ```
 
 **Hint**: To increase `positionX` by `10` we wrote: `positionX = positionX + 10;`. How can you increase `points` by `1`?
-<hr>
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ## **TODO 5:** *Speeding Up*
 
@@ -485,12 +565,20 @@ Now that we can keep track of how many times we've clicked on the box, we also w
 >
 >So far, we've introduced 2 Variables to our program: `positionX` and `points`. Each variable changes over time and/or when the box is clicked. Use your knowledge of Variables to introduce a new Variable `speed` into the program with the next step!
 
+<br>
+<br>
+<br>
+
 ## **TODO 5 Part 1:** *Declare your Variable*
 
 **CODE:** 
 * Declare a new Variable called `speed` and assign it the value `10`.
 
     * **HINT** This variable should be declared with your other Variables `positionX` and `points`.
+
+<br>
+<br>
+<br>
 
 ## **TODO 5 Part 2:** *Replace the hard-coded value*
 
@@ -500,6 +588,9 @@ Now that we can keep track of how many times we've clicked on the box, we also w
 **CODE** 
 * Modify this code so that it uses your new `speed` Variable to change `positionX` instead of the hard-coded value `10`.
 
+<br>
+<br>
+<br>
 
 ## **TODO 5 Part 3:** *Increase the value of `speed` when the box is clicked*
 
@@ -522,7 +613,17 @@ Your program should satisfy the following requirements:
 - The box should display the correct number of times that you have clicked on it
 - The box should speed up when it is clicked
 
-# TODO 6: Make the Box Bounce
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+## TODO 6: Make the Box Bounce
+
 
 **IMPORTANT:** This TODO has 2 steps. Make sure to complete all steps before moving on.
 
@@ -537,6 +638,10 @@ The collision occurs on Frame 3 when `positionX` (`250`) is *greater than* the c
 - The `boardWidth` variable is the **Maximum x-coordinate of the screen**. Anything greater than that value will be off the screen to the right.
 
 Even though the collision doesn't occur until Frame 3, the program has to check for collisions on each Frame and be ready to respond **IF** that collision occurs.
+
+<br>
+<br>
+<br>
 
 ## TODO 6 Part1: Detecting Collisions on the right wall
 
@@ -583,6 +688,9 @@ Even though the collision doesn't occur until Frame 3, the program has to check 
     - `speed *= -1;`
     - `speed = speed * -1;`
 
+<br>
+<br>
+<br>
 
 ## **TODO 6 Part 2:** *Bounce the box off the left wall.*
 
@@ -640,8 +748,18 @@ Now, using what you've learned about how to bounce the box off the right wall, i
         >
         ></details>
  
-# TODO 7: Fix a bug!
-# (It's a lot of reading, but be sure to at least skim it to make sure you understand the issue)
+ #
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 7:** Fix a bug!
+## (It's a lot of reading, but be sure to at least skim it to make sure you understand the issue)
 Great work! It seems like our Bouncing Box game is complete. However, we've created a _bug_ in our program that we need to squash! Thankfully, this bug doesn't break the program completely, it just makes it behave in a way that we'd like to change. 
 
 Okay, to understand this bug, imagine that the game has just begun and the box is moving to the right. We know that `speed` is `10` and `positionX` is `0`.  Each time a new frame is drawn, we execute the code below:
@@ -798,6 +916,16 @@ To end the game we need to turn off the interval timer that is constantly callin
 Now that we have this function set up, we need to figure out *when* to call it. 
 - If we want to end the game after 10 misclicks, how can we track how many times we've misclicked? Will we need a new Variable for this? If so, what should it's initial value be when the game starts?
 - How can we register that a misclick has occured? If we don't click on the box, what are we clicking on? Is there a way for us to use the code that handles the box click and modify it so that it handles clicking on the board?
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
 
 ### **TODO 8:** *Go Live*
 

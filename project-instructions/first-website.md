@@ -14,21 +14,21 @@ We're gonna go live on GitHub with your very own website!
     - [HTML in 3 Minutes](#html-in-3-minutes)
   - [Lesson Steps](#lesson-steps)
     - [Work Flow](#work-flow)
-    - [TODO 1 : Create index.html](#todo-1-create-indexhtml)
-    - [TODO 2 : Add a Title](#todo-2-add-a-title)
-    - [TODO 3 : Create Sections for the Menu and Main Content](#todo-3-create-sections-for-the-menu-and-main-content)
-    - [TODO 4 : Create Structure for our Content](#todo-4-create-structure-for-our-content)
-    - [TODO 5 : Add Content](#todo-5-add-content)
-    - [TODO 6 : Add More Content - Interests](#todo-6-add-more-content---interests)
-    - [TODO 7 : Add an Image](#todo-7-add-an-image)
-    - [TODO 8 : Navigation and Site Title](#todo-8-navigation-and-site-title)
-    - [TODO 9 : Make it Pretty](#todo-9-make-it-pretty)
+    - [TODO 1 : Create index.html](#todo-1--create-indexhtml)
+    - [TODO 2 : Add a Title](#todo-2--add-a-title)
+    - [TODO 3 : Create Sections for the Menu and Main Content](#todo-3--create-sections-for-the-menu-and-main-content)
+    - [TODO 4 : Create Structure for our Content](#todo-4--create-structure-for-our-content)
+    - [TODO 5 : Add Content](#todo-5--add-content)
+    - [TODO 6 : Add More Content - Interests](#todo-6--add-more-content---interests)
+    - [TODO 7 : Add an Image](#todo-7--add-an-image)
+    - [TODO 8 : Navigation and Site Title](#todo-8--navigation-and-site-title)
+    - [TODO 9 : Make it Pretty](#todo-9--make-it-pretty)
       - [CSS Selectors in a Nutshell](#css-selectors-in-a-nutshell)
       - [Selecting HTML Elements by ID, Class, or by Tag Type](#selecting-html-elements-by-id-class-or-by-tag-type)
-    - [TODO 10 : Add in Attributes](#todo-10-add-in-attributes)
-    - [TODO 11 : Customize CSS](#todo-11-customize-css)
+    - [TODO 10 : Add in Attributes](#todo-10--add-in-attributes)
+    - [TODO 11 : Customize CSS](#todo-11--customize-css)
     - [Extra Challenge](#extra-challenge)
-    - [TODO 12 : Go Live](#todo-12-go-live)
+    - [TODO 12 : Go Live](#todo-12--go-live)
 
 ## Prerequisites
 
@@ -107,6 +107,12 @@ Also note that HTML tags are hierarchical, and **need to be indented to illustra
 
 Above, you'll see this pattern often - notice that we have one `<div>` tag with an id attribute of `content`, and inside this tag, we have two other `<div>` tags, one for a sidebar and one for a main section of the page. The _content_ `<div>` is the parent of both the _sidebar_ and _main_ `<div>`, while _sidebar_ and _main_ are siblings. Notice the indentation - this is extremely important as it clearly and visually spells out these hierarchical relationship. Indentation and relationships of tags (and code blocks) are the things newcomers struggle with the most! Be vigilant here!
 
+<br>
+<br>
+<br>
+<br>
+<br>
+
 # Lesson Steps
 
 > ### **Work Flow**
@@ -119,7 +125,7 @@ Above, you'll see this pattern often - notice that we have one `<div>` tag with 
 >
 > Part of being a good developer is being able to follow instructions closely. Sometimes we may be showing you code examples to make a point, versus adding code (any additional details for reference, you will see displayed with a sideways triangle). Make sure you are adding/removing code _only_ if a specific step asks you to.
 
-## **TODO 1:** _Create index.html_
+## **TODO 1 :** _Create index.html_
 
 - **1a.** **FIND:** Locate the file tree on the left side of your workspace
 - **1b.** **FIND:** Right click inside of your file tree (not on top of any files/folders that are currently there) and select “New File” (See below)
@@ -165,9 +171,18 @@ Above, you'll see this pattern often - notice that we have one `<div>` tag with 
 <br>
 
 We've made the structure of the site so now we need some content! Let's move on to giving your site a title!
+
+#
+
+<br>
+<br>
+<br>
+<br>
 <br>
 
-## **TODO 2:** _Add a Title_
+#
+
+## **TODO 2 :** _Add a Title_
 
 - **2a.** **CODE:** Add your title `<title></title>` tag to where it belongs, between your `<head>` tags.
 
@@ -188,8 +203,17 @@ We've made the structure of the site so now we need some content! Let's move on 
   ```
   </details>
   
+#
+
 <br>
-## **TODO 3:** _Create Sections for the Menu and Main Content_
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 3 :** _Create Sections for the Menu and Main Content_
 
 We're going to create `<div>` tags to group our content together. What is the div tag you may ask?
 
@@ -249,9 +273,17 @@ We're going to create `<div>` tags to group our content together. What is the di
     ```
     </details>
 
+#
+
+<br>
+<br>
+<br>
+<br>
 <br>
 
-## **TODO 4:** _Create Structure for our Content_
+#
+
+## **TODO 4 :** _Create Structure for our Content_
 
 - **4a.** **CODE:** Inside the `<main>` element you've already created, create two new nested `<div>` elements.
 
@@ -275,9 +307,17 @@ We're going to create `<div>` tags to group our content together. What is the di
     ```
     </details>
 
+#
+
+<br>
+<br>
+<br>
+<br>
 <br>
 
-## **TODO 5:** _Add Content_
+#
+
+## **TODO 5 :** _Add Content_
 
 Ok, so far, we've sectioned off our webpage, now we need to add some content...
 
@@ -286,7 +326,18 @@ Ok, so far, we've sectioned off our webpage, now we need to add some content...
   - Create a `<h2> </h2>` element and put your name inside of it.
   - Below that make a `<p> </p>` element and inside it put your position or job title (such as "Student at XYZ High.")
 
-## **TODO 6:** Add More Content - Interests
+
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 6 :** Add More Content - Interests
 
 Inside of the Content `<div>` element, let's create a section where we can list your interests.
 
@@ -320,7 +371,7 @@ Inside of the Content `<div>` element, let's create a section where we can list 
     > ```
 </details>
 
-<br>
+
 
 Now, save your page and preview it.
 
@@ -336,9 +387,17 @@ Now, save your page and preview it.
 > <img src="img/gitpod-toggle-preview.png" style="max-height: 350px">
 > </details>
 
+#
+
+<br>
+<br>
+<br>
+<br>
 <br>
 
-## **TODO 7:** _Add an Image_
+#
+
+## **TODO 7 :** _Add an Image_
 
 - **7a.** **CODE:** Inside of the `<div>` tag below the `<!-- Sidebar section -->` comment, add an `<img>` tag.
   _More on image tags [here](http://www.w3schools.com/tags/tag_img.asp)._
@@ -347,8 +406,7 @@ Now, save your page and preview it.
 
   > **To add an image:** We need to add the URL of an actual image with the **src** attribute. Find an image you would like on your page, you can find an image of yourself from Facebook, or anything else using a Google image search. Right-click on the image, and choose 'Copy Image URL.' Then, paste that URL into the **src** attribute.
 
-   <details> 
-   <summary> Click to see what your img tag should look like after completing these steps</summary>
+   
 
 Your full image tag should look this this:
 
@@ -359,16 +417,26 @@ Your full image tag should look this this:
 </div>
 ```
 
-</details>
+
 
 Save your code and refresh your preview. It should look something like this:
 
-<img src="https://github.com/OperationSpark/first-website-hs-beta/blob/master/img/second-shot.png?raw=true">
+<img src="img/second-shot.png">
 
 You should see the image now. If you don't, go back and double check that there are no
 errors in your `<img>` tag.
 
-## **TODO 8:** _Navigation and Site Title_
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 8 :** _Navigation and Site Title_
 
 Your site needs a title!
 
@@ -419,7 +487,17 @@ Next, we're going to make a menu.
 
 Save and view your work. You now have some menu items! You should see your title inside of the navbar to the left. To the right, your Home/Portfolio links. The _Home_ link even works since it simply links to the page we are currently working on. The other link is for our portfolio page which we'll build out in the next lesson.
 
-## **TODO 9:** _Make it Pretty_
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 9 :** _Make it Pretty_
 
 We now have a fairly plain website but it's a website! Let's add some style. Here's where CSS comes in!
 
@@ -583,7 +661,17 @@ We now have a fairly plain website but it's a website! Let's add some style. Her
 > </details>
 > <br>
 
-## **TODO 10:** _Add in Attributes_
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 10 :** _Add in Attributes_
 
 Check it out! We have some style but not very much. We can fix that by adding in class and id attributes to several elements. All of these changes will be made back in the `index.html` file.
 
@@ -724,7 +812,17 @@ Finally, the content section needs another class and id attribute added to it.
 
 Save and preview one more time. You've now added in all of the class and id attributes you need!
 
-## **TODO 11:** _Customize CSS_
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+## **TODO 11 :** _Customize CSS_
 
 ### **Part 1)** _Adding more margin_
 
@@ -760,7 +858,18 @@ Save and preview one more time. You've now added in all of the class and id attr
 - Add in any other borders you think might look good
 - Feel free to play around with other bits of CSS if you want to further customize your website!
 
-## **TODO 12:** _Go Live_
+#
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+#
+
+
+## **TODO 12 :** _Go Live_
 
 Let's put our site on the Internet so that anyone can look at it!
 
