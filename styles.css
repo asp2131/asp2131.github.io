@@ -69,10 +69,13 @@ main {
 .content {
   flex: 1;
   padding: 15px;
+ 
 }
 
 #interests {
   padding: 8px;
+  border-width: 200px;
+  border-color: aqua;
 }
 
 h2,
