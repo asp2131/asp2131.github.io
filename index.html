@@ -1,21 +1,61 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-    <head>
-      <title>Mr. Pounds's Amazing Website</title>
-    </head>
+  <head>
+    <title>Mr. Pounds's Amazing Website</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-    <body>
-      <div>
-        <nav></nav>
-        <main>
-          <!-- Sidebar section --> 
-          <div></div>
-          <!-- Content section -->
-          <div>
-            <h2>Mr. Pounds</h2>
-            <p>Instructor</p>
+  <body>
+    <div id="all-contents">
+      <img
+        src="https://cdn.prod.website-files.com/65cb4b748292f55d4cb4aa62/65cbab6956ff13011f8771a6_image%2044.avif"
+        loading="lazy"
+        sizes="100vw"
+        srcset="
+          https://cdn.prod.website-files.com/65cb4b748292f55d4cb4aa62/65cbab6956ff13011f8771a6_image%2044-p-500.avif  500w,
+          https://cdn.prod.website-files.com/65cb4b748292f55d4cb4aa62/65cbab6956ff13011f8771a6_image%2044-p-800.avif  800w,
+          https://cdn.prod.website-files.com/65cb4b748292f55d4cb4aa62/65cbab6956ff13011f8771a6_image%2044.avif       1441w
+        "
+        alt=""
+        id="paper-img"
+        class="paper-img"
+        style="transform: scaleX(-1)"
+      />
+      <nav>
+        <h1>Mr. Pounds Website</h1>
+        <ul id="nav-ul">
+          <li class="nav-li">
+            <a href="index.html">Home</a>
+          </li>
+          <li class="nav-li">
+            <a href="portfolio.html">Portfolio</a>
+          </li>
+        </ul>
+      </nav>
+      <main>
+        <!-- Sidebar section -->
+        <div class="sidebar">
+          <img
+            class="sidebar-img"
+            src="https://st3.depositphotos.com/5476586/14150/v/450/depositphotos_141501748-stock-illustration-muscovy-duck-vector-illustration.jpg"
+          />
+        </div>
+
+        <!-- Content section -->
+        <div class="content">
+          <h2>Mr. Pounds</h2>
+          <p>Instructor</p>
+          <!-- Interests section -->
+          <div id="interests">
+            <h3>Interests</h3>
+            <ul>
+              <li>Coding</li>
+              <li>Ducks</li>
+              <li>Muay Thai</li>
+            </ul>
           </div>
-        </main>
-      </div>
-    </body>
+        </div>
+      </main>
+    </div>
+  </body>
 </html>

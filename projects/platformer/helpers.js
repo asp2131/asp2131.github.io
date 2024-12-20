@@ -8,7 +8,7 @@ function registerSetup(setup) {
 }
 
 function main() {
-  ctx.clearRect(0, 0, 1400, 750); //erase the screen so you can draw everything in it's most current position
+  // ctx.clearRect(0, 0, 1400, 750); //erase the screen so you can draw everything in it's most current position
 
   if (player.deadAndDeathAnimationDone) {
     deathOfPlayer();
@@ -196,6 +196,46 @@ function animate() {
   hitDy =
     animationDetails[currentAnimationType].coordinates[Math.floor(frameIndex)]
       .hitDy * playerScale;
+}
+
+function drawGrid() {
+  ctx.fillStyle = "black";
+  ctx.font = "10px Arial";
+
+  // Draw vertical lines and x-coordinates
+  for (let i = 100; i < canvas.width; i += 100) {
+    // Draw the vertical grid line
+    createPlatform(i, canvas.height, -1, -canvas.height);
+
+    // Draw x-coordinate label at bottom
+    ctx.save();
+    ctx.fillStyle = "black";
+    ctx.fillText(`x: ${i}`, i - 15, canvas.height - 5);
+
+    // Draw tick marks and coordinates at 100px intervals
+    for (let y = 100; y < canvas.height; y += 100) {
+      ctx.fillText(`(${i},${y})`, i + 5, y - 5);
+    }
+    ctx.restore();
+  }
+
+  // Draw horizontal lines and y-coordinates
+  for (let i = 100; i < canvas.height; i += 100) {
+    // Draw the horizontal grid line
+    createPlatform(canvas.width, i, -canvas.width, -1);
+
+    // Draw y-coordinate label on left side
+    ctx.save();
+    ctx.fillStyle = "black";
+    ctx.fillText(`y: ${i}`, 5, i - 5);
+    ctx.restore();
+  }
+
+  // Draw origin coordinates
+  ctx.save();
+  ctx.fillStyle = "black";
+  ctx.fillText("(0,0)", 5, 10);
+  ctx.restore();
 }
 
 function drawRobot() {
