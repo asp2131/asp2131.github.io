@@ -72,6 +72,12 @@ var Gamification = (function () {
             }
           }
         },
+        onGameEvent: function (data) {
+          if (data.type === "gameStart" && !Multiplayer.isHost) {
+            // Guest receives game start signal from host
+            startGameAsGuest();
+          }
+        },
       });
     },
 
@@ -426,33 +432,89 @@ var Gamification = (function () {
     var instructions = document.getElementById("instructions");
     if (!instructions) return;
 
-    var roleText = Multiplayer.isHost
-      ? "🟢 You are the HOST (GREEN circle)"
-      : "🔵 You are the GUEST (BLUE circle)";
-    var roleColor = Multiplayer.isHost ? "#00FF00" : "#0080FF";
-
-    // Use a document fragment to minimize DOM reflows
-    var fragment = document.createDocumentFragment();
-    var container = document.createElement("div");
-
-    container.innerHTML = `
-            <h2 style="margin: 0 0 10px 0; color: ${roleColor};">✅ Connected to Multiplayer Game!</h2>
-            <div style="margin: 20px 0;">
-                <p style="margin: 10px 0; color: #FFD700; font-size: 18px; font-weight: bold;">🎉 Connection Successful!</p>
-                <p style="margin: 5px 0; color: ${roleColor}; font-size: 16px;">${roleText}</p>
-                <p style="margin: 5px 0;">Use <strong>WASD</strong> or <strong>Arrow Keys</strong> to move</p>
-                <p style="margin: 5px 0;">Absorb circles and each other to grow!</p>
-                <p style="margin: 5px 0;">Biggest circle after 60 seconds wins!</p>
-                <p style="margin: 15px 0 5px 0; color: #FFD700;"><strong>Press any key to start!</strong></p>
-            </div>
-        `;
-
-    // Single DOM update
-    instructions.innerHTML = "";
-    instructions.appendChild(container);
+    if (Multiplayer.isHost) {
+      showHostPlayerJoined();
+    } else {
+      showGuestConnected();
+    }
 
     // Show persistent multiplayer status (deferred)
     setTimeout(showMultiplayerStatus, 10);
+  }
+
+  // Show host-specific UI when player joins
+  function showHostPlayerJoined() {
+    var instructions = document.getElementById("instructions");
+    if (!instructions) return;
+
+    var container = document.createElement("div");
+    container.innerHTML = `
+            <h2 style="margin: 0 0 10px 0; color: #00FF00;">✅ Player Joined Your Game!</h2>
+            <div style="margin: 20px 0;">
+                <p style="margin: 10px 0; color: #FFD700; font-size: 18px; font-weight: bold;">🎉 Ready to Play!</p>
+                <p style="margin: 5px 0; color: #00FF00; font-size: 16px;">🟢 You are the HOST (GREEN circle)</p>
+                <p style="margin: 5px 0;">Your opponent is connected and ready!</p>
+                <p style="margin: 5px 0;">Use <strong>WASD</strong> or <strong>Arrow Keys</strong> to move</p>
+                <p style="margin: 5px 0;">Absorb circles and each other to grow!</p>
+                <p style="margin: 5px 0;">Biggest circle after 60 seconds wins!</p>
+                <div style="margin: 20px 0;">
+                    <button id="startMultiplayerBtn" style="padding: 15px 25px; background: #FFD700; color: black; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">🏁 START GAME</button>
+                </div>
+                <p style="margin: 5px 0; color: #AAA; font-size: 14px;">Click the button above to begin the multiplayer match!</p>
+            </div>
+        `;
+
+    instructions.innerHTML = "";
+    instructions.appendChild(container);
+
+    // Add event listener for start button
+    setTimeout(function () {
+      var startBtn = document.getElementById("startMultiplayerBtn");
+      if (startBtn) {
+        startBtn.addEventListener("click", function () {
+          startBtn.disabled = true;
+          startBtn.textContent = "Starting...";
+          startBtn.style.background = "#666";
+
+          // Send game start signal to guest
+          if (Multiplayer.isConnected()) {
+            Multiplayer.sendGameData({
+              type: "gameEvent",
+              eventType: "gameStart",
+              timestamp: Date.now(),
+            });
+          }
+
+          // Hide instructions and start the game
+          setTimeout(function () {
+            instructions.style.display = "none";
+            startGameAsHost();
+          }, 500);
+        });
+      }
+    }, 50);
+  }
+
+  // Show guest-specific UI when connected
+  function showGuestConnected() {
+    var instructions = document.getElementById("instructions");
+    if (!instructions) return;
+
+    var container = document.createElement("div");
+    container.innerHTML = `
+            <h2 style="margin: 0 0 10px 0; color: #0080FF;">✅ Connected to Multiplayer Game!</h2>
+            <div style="margin: 20px 0;">
+                <p style="margin: 10px 0; color: #FFD700; font-size: 18px; font-weight: bold;">🎉 Connection Successful!</p>
+                <p style="margin: 5px 0; color: #0080FF; font-size: 16px;">🔵 You are the GUEST (BLUE circle)</p>
+                <p style="margin: 5px 0;">Use <strong>WASD</strong> or <strong>Arrow Keys</strong> to move</p>
+                <p style="margin: 5px 0;">Absorb circles and each other to grow!</p>
+                <p style="margin: 5px 0;">Biggest circle after 60 seconds wins!</p>
+                <p style="margin: 15px 0 5px 0; color: #FFD700;"><strong>Waiting for host to start the game...</strong></p>
+            </div>
+        `;
+
+    instructions.innerHTML = "";
+    instructions.appendChild(container);
   }
 
   // Show persistent multiplayer status indicator
@@ -504,6 +566,67 @@ var Gamification = (function () {
     var statusDiv = document.getElementById("multiplayerStatus");
     if (statusDiv) {
       statusDiv.remove();
+    }
+  }
+
+  // Start game as host
+  function startGameAsHost() {
+    if (!gameStarted) {
+      gameStarted = true;
+      gameMode = "multiplayer";
+      score = 0;
+      gameTimer = 60;
+
+      // Create player if not exists
+      if (!player) createPlayer();
+
+      // Show multiplayer UI
+      document.getElementById("multiplayerScore").style.display = "block";
+
+      // Start timer
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(function () {
+        gameTimer--;
+        document.getElementById("gameTimer").textContent =
+          "Time: " + gameTimer + "s";
+
+        if (gameTimer <= 0) {
+          endMultiplayerGame();
+        }
+      }, 1000);
+    }
+  }
+
+  // Start game as guest (when host starts)
+  function startGameAsGuest() {
+    var instructions = document.getElementById("instructions");
+    if (instructions) {
+      instructions.style.display = "none";
+    }
+
+    if (!gameStarted) {
+      gameStarted = true;
+      gameMode = "multiplayer";
+      score = 0;
+      gameTimer = 60;
+
+      // Create player if not exists
+      if (!player) createPlayer();
+
+      // Show multiplayer UI
+      document.getElementById("multiplayerScore").style.display = "block";
+
+      // Start timer
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(function () {
+        gameTimer--;
+        document.getElementById("gameTimer").textContent =
+          "Time: " + gameTimer + "s";
+
+        if (gameTimer <= 0) {
+          endMultiplayerGame();
+        }
+      }, 1000);
     }
   }
 
