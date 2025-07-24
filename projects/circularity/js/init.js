@@ -44,24 +44,15 @@ var init = function (window) {
         */
     function update() {
       // TODO 4 : Update the circle's position //
-      physikz.updatePosition(circles[0]);
-      physikz.updatePosition(circles[1]);
-      physikz.updatePosition(circles[2]);
-      physikz.updatePosition(circles[3]);
-      physikz.updatePosition(circles[4]);
+      for (var count = 0; count < 100; count++) {
+        physikz.updatePosition(circles[count]);
+        game.checkCirclePosition(circles[count]);
+      }
 
       // TODO 5 / 10 : Call game.checkCirclePosition() on your circles.
-      game.checkCirclePosition(circles[0]);
-      game.checkCirclePosition(circles[1]);
-      game.checkCirclePosition(circles[2]);
-      game.checkCirclePosition(circles[3]);
-      game.checkCirclePosition(circles[4]);
 
       // TODO 9 : Iterate over the array
-      for (var count = 0; count < 100; count++) {
-        physikz.updatePosition(circles[0]);
-        game.checkCirclePosition(circles[0]);
-      }
+      Gamification.update();
     }
 
     /* 
@@ -109,6 +100,15 @@ var init = function (window) {
     game.update = update;
 
     app.addUpdateable(window.opspark.game);
+
+    Gamification.init({
+      canvas: canvas,
+      view: view,
+      draw: draw,
+      physikz: physikz,
+      circles: circles,
+      game: game,
+    });
   };
 };
 
