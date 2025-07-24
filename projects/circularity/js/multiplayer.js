@@ -90,13 +90,52 @@ var Multiplayer = (function() {
         var offer = urlParams.get('offer');
         
         if (offer) {
+            // Show immediate feedback that we're joining a multiplayer game
+            showJoiningFeedback();
+            
             // Automatically join game if offer is in URL
             try {
                 var decodedOffer = JSON.parse(atob(offer));
                 api.joinGame(decodedOffer);
             } catch (e) {
                 console.error('Invalid offer in URL:', e);
+                showJoinError('Invalid multiplayer link');
             }
+        }
+    }
+    
+    function showJoiningFeedback() {
+        // Show immediate visual feedback that we're joining a multiplayer game
+        var instructions = document.getElementById('instructions');
+        if (instructions) {
+            instructions.style.display = 'block';
+            instructions.innerHTML = `
+                <h2 style="margin: 0 0 10px 0; color: #0080FF;">Joining Multiplayer Game...</h2>
+                <div style="margin: 20px 0;">
+                    <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #0080FF; border-top: 3px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="margin: 10px 0; color: #FFD700;">Connecting to host player...</p>
+                    <p style="margin: 5px 0; color: #0080FF;">🔵 You will be the BLUE circle</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+        }
+    }
+    
+    function showJoinError(message) {
+        var instructions = document.getElementById('instructions');
+        if (instructions) {
+            instructions.style.display = 'block';
+            instructions.innerHTML = `
+                <h2 style="margin: 0 0 10px 0; color: #FF0000;">Connection Failed</h2>
+                <p style="margin: 10px 0; color: #FFD700;">${message}</p>
+                <p style="margin: 5px 0;">Please try again or ask for a new link.</p>
+                <button onclick="window.location.href = window.location.pathname;" style="margin: 10px; padding: 10px 15px; background: #00FF00; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Return to Single Player</button>
+            `;
         }
     }
     
