@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 01 · The Signal Chain: Sensor → AFE → ADS1220 → Pico W</title>
+<style>
+  :root{
+    --ink:#122029; --muted:#5c7080; --line:#dbe3e8; --bg:#f5f8fa; --card:#fff;
+    --pwr:#e4572e; --v3:#8a4fff; --gnd:#3a3d44; --spi:#2d7dd2; --analog:#12a077;
+    --accent:#2d7dd2;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);margin:0;background:var(--bg)}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 24px 80px}
+  header .kicker{color:var(--accent);font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;font-size:12px;margin-bottom:8px}
+  h1{font-size:30px;line-height:1.2;margin:0 0 8px}
+  .lede{color:var(--muted);font-size:18px;margin:0 0 8px}
+  .mission{background:#eef6ee;border-left:4px solid #2e9e5b;padding:12px 16px;
+    border-radius:8px;font-size:15px;margin:20px 0 0}
+  h2{font-size:22px;margin:44px 0 6px;padding-top:8px}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums}
+  h3{font-size:17px;margin:24px 0 6px}
+  p{margin:10px 0}
+  code{background:#eef2f5;padding:1px 6px;border-radius:5px;
+    font:14px ui-monospace,Menlo,monospace}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:22px;margin:18px 0;box-shadow:0 1px 3px rgba(20,40,60,.04)}
+  .warn{background:#fff5f1;border:1px solid #f3c4b4;border-left:4px solid var(--pwr);
+    padding:14px 16px;border-radius:10px;margin:16px 0}
+  .warn b{color:var(--pwr)}
+  .tip{background:#eef4fb;border-left:4px solid var(--accent);padding:12px 16px;
+    border-radius:10px;margin:16px 0}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .tag{display:inline-block;font-size:11px;font-weight:700;color:#fff;
+    border-radius:4px;padding:1px 7px}
+  .t-pwr{background:var(--pwr)} .t-v3{background:var(--v3)} .t-gnd{background:var(--gnd)}
+  .t-spi{background:var(--spi)} .t-analog{background:var(--analog)}
+  ol.steps{counter-reset:s;list-style:none;padding:0}
+  ol.steps>li{position:relative;padding:14px 0 14px 46px;border-bottom:1px solid var(--line)}
+  ol.steps>li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;
+    width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+    font-weight:700;display:grid;place-items:center;font-size:14px}
+  /* 3D viewer */
+  #viewer{position:relative;height:460px;border-radius:14px;overflow:hidden;
+    background:linear-gradient(180deg,#e8eef3,#d3dde5);border:1px solid var(--line)}
+  #viewer canvas{display:block}
+  .v-controls{position:absolute;top:12px;left:12px;display:flex;flex-wrap:wrap;gap:6px;z-index:5}
+  .v-controls button{font:600 12px/1 inherit;border:1px solid var(--line);
+    background:rgba(255,255,255,.92);color:var(--ink);padding:7px 11px;border-radius:20px;
+    cursor:pointer;backdrop-filter:blur(4px)}
+  .v-controls button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .v-hint{position:absolute;bottom:10px;right:12px;font-size:11px;color:#48606f;
+    background:rgba(255,255,255,.8);padding:4px 9px;border-radius:12px;z-index:5}
+  .lbl{font:600 11px/1 -apple-system,sans-serif;color:#fff;background:rgba(20,32,41,.82);
+    padding:3px 7px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-140%)}
+  .lbl.pin{background:rgba(45,125,210,.92)}
+  /* SVG schematic */
+  .schematic{width:100%;height:auto;background:#fff;border-radius:12px;border:1px solid var(--line)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 2px;font-size:13px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:22px;height:4px;border-radius:2px;display:inline-block}
+  .ask{background:#111a20;color:#dfe8ee;border-radius:14px;padding:22px;margin-top:36px}
+  .ask b{color:#fff}
+  .ask code{background:#20303a;color:#bfe0ff}
+  footer{margin-top:40px;font-size:13px;color:var(--muted)}
+  footer a{color:var(--accent)}
+  @media (max-width:560px){#viewer{height:380px}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Louisianair · Lesson 01 · Hardware bring-up</div>
+  <h1>The Signal Chain: Sensor → AFE → ADS1220 → Pico W</h1>
+  <p class="lede">How an invisible whiff of H2S becomes a number in your firmware — and exactly which wire goes where on the breadboard.</p>
+  <div class="mission">🎯 <b>Mission tie-in:</b> get <b>one H2S channel</b> reading on the Pico at the bench, safely, with the bench supply powering the board. This is the first real datapoint the whole Louisianair node is built on.</div>
+</header>
+
+<h2><span class="n">1.</span> The big idea (read this first)</h2>
+<div class="card">
+<p>Each stage does <b>one job</b>. Follow the whole journey of a single measurement:</p>
+<table>
+  <tr><th>Stage</th><th>What it is</th><th>What it does</th></tr>
+  <tr><td><b>Sensor</b></td><td>Alphasense H2S-A4 electrochemical cell</td><td>Gas reacts at an electrode → produces a tiny <b>current</b> (nanoamps per ppm). Too small to read directly.</td></tr>
+  <tr><td><b>AFE</b></td><td>Analogue Front End board</td><td>Turns that tiny current into a clean, buffered <b>voltage</b> (WE + AE outputs), plus a Pt1000 temperature voltage. Needs 3.5–6.4V power.</td></tr>
+  <tr><td><b>ADS1220</b></td><td>24-bit ADC (the purple board)</td><td>Measures the analog voltage very precisely and turns it into a <b>digital number</b>.</td></tr>
+  <tr><td><b>Pico W</b></td><td>RP2040 microcontroller</td><td>Reads that number over <b>SPI</b> (four digital wires), runs your TinyGo firmware, later ships it over MQTT.</td></tr>
+</table>
+<p><b>Analog vs digital is the key split.</b> Everything <em>left</em> of the ADS1220 is fragile analog voltage — keep those wires short and share a ground. Everything <em>right</em> of it is robust digital SPI. The ADS1220 is the translator between the two worlds. That's <em>why</em> it sits in the middle.</p>
+</div>
+
+<h2><span class="n">2.</span> See it in 3D</h2>
+<p>Drag to orbit. Use the buttons to light up just one kind of connection — start with <b>Ground</b> (everything shares it), then <b>SPI</b>, then <b>Analog</b>.</p>
+<p style="color:var(--muted);font-size:14.5px">The <b>Pico W is seated on a Freenove breakout board</b> (the dark board with yellow header pins on the right). You don't jumper to the Pico directly — every <code>GP##</code> and power pin is fanned out to a <b>labeled header on the breakout</b>, so all the wires from the ADS1220 land there. Same pin names as the tables below.</p>
+<div id="viewer">
+  <div class="v-controls" id="vctl">
+    <button data-net="all" class="on">All wires</button>
+    <button data-net="pwr">5V power</button>
+    <button data-net="v3">3V3 power</button>
+    <button data-net="gnd">Ground</button>
+    <button data-net="analog">Analog (AFE→ADC)</button>
+    <button data-net="spi">SPI (ADC→Pico)</button>
+    <button id="spin">⟳ Spin</button>
+  </div>
+  <div class="v-hint">drag = orbit · scroll = zoom</div>
+</div>
+<div class="legend">
+  <span><i class="sw" style="background:#e4572e"></i>5V (MB102 → AFE)</span>
+  <span><i class="sw" style="background:#8a4fff"></i>3V3 (MB102 → ADS1220)</span>
+  <span><i class="sw" style="background:#3a3d44"></i>Ground (shared)</span>
+  <span><i class="sw" style="background:#12a077"></i>Analog signals</span>
+  <span><i class="sw" style="background:#2d7dd2"></i>SPI (digital)</span>
+</div>
+<p style="color:var(--muted);font-size:13.5px;margin:2px 2px 0">Each 3D wire is <b>one net</b> (a bundle), not one Dupont jumper — the real build uses an individual Dupont per pin. Section&nbsp;4 says how many and which <b>gender</b>.</p>
+
+<h2><span class="n">3.</span> The flat schematic</h2>
+<p>Same wiring, drawn as a clean block diagram. Print this and the <a href="../reference/wiring-pinout.html">wiring card</a> for the bench.</p>
+<svg class="schematic" viewBox="0 0 900 430" role="img" aria-label="Wiring schematic">
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5c7080"/>
+    </marker>
+    <style>
+      .blk{fill:#fff;stroke:#122029;stroke-width:1.5;rx:10}
+      .bt{font:700 14px sans-serif;fill:#122029}
+      .bs{font:11px sans-serif;fill:#5c7080}
+      .pl{font:11px ui-monospace,monospace;fill:#122029}
+      .w{stroke-width:3;fill:none}
+    </style>
+  </defs>
+
+  <!-- MB102 module -->
+  <rect class="blk" x="20" y="150" width="140" height="120" rx="10"/>
+  <text class="bt" x="90" y="196" text-anchor="middle">MB102 Module</text>
+  <text class="bs" x="90" y="214" text-anchor="middle">9V in · jumpers:</text>
+  <text class="bs" x="90" y="230" text-anchor="middle">5V &amp; 3.3V rails</text>
+  <text class="pl" x="90" y="252" text-anchor="middle">5V · 3V3 · GND</text>
+
+  <!-- AFE -->
+  <rect class="blk" x="230" y="40" width="170" height="150" rx="10"/>
+  <text class="bt" x="315" y="70" text-anchor="middle">AFE (H2S)</text>
+  <text class="bs" x="315" y="88" text-anchor="middle">Alphasense A4</text>
+  <text class="pl" x="245" y="115">VIN 5V</text>
+  <text class="pl" x="245" y="133">GND</text>
+  <text class="pl" x="245" y="151">OP = WE</text>
+  <text class="pl" x="245" y="169">OP = AE</text>
+  <text class="pl" x="315" y="186" text-anchor="middle">Pt1000 ± </text>
+
+  <!-- ADS1220 -->
+  <rect class="blk" x="470" y="150" width="170" height="150" rx="10" style="fill:#f3edff"/>
+  <text class="bt" x="555" y="180" text-anchor="middle">ADS1220</text>
+  <text class="bs" x="555" y="197" text-anchor="middle">24-bit ADC</text>
+  <text class="pl" x="485" y="222">AIN0 WE</text>
+  <text class="pl" x="485" y="240">AIN1 AE</text>
+  <text class="pl" x="485" y="258">AIN2/3 Pt1000</text>
+  <text class="pl" x="485" y="284">AVDD/DVDD 3V3</text>
+
+  <!-- Pico -->
+  <rect class="blk" x="710" y="150" width="170" height="150" rx="10" style="fill:#eafaf3"/>
+  <text class="bt" x="795" y="180" text-anchor="middle">Pico W</text>
+  <text class="bs" x="795" y="197" text-anchor="middle">RP2040 · TinyGo</text>
+  <text class="pl" x="725" y="222">GP18/19/16</text>
+  <text class="pl" x="725" y="240">GP17 CS · GP20 DRDY</text>
+  <text class="pl" x="725" y="266">USB powered</text>
+  <text class="pl" x="725" y="284">GND (shared)</text>
+
+  <!-- wires -->
+  <!-- supply +5 to AFE VIN -->
+  <path class="w" style="stroke:#e4572e" d="M160,185 C195,185 200,113 245,113" marker-end="url(#ar)"/>
+  <!-- supply gnd to AFE gnd -->
+  <path class="w" style="stroke:#3a3d44" d="M160,235 C195,235 205,131 245,131" marker-end="url(#ar)"/>
+  <!-- AFE WE/AE/Pt1000 to ADS analog -->
+  <path class="w" style="stroke:#12a077" d="M400,155 C440,155 440,230 483,230" marker-end="url(#ar)"/>
+  <path class="w" style="stroke:#12a077" d="M400,169 C438,169 445,248 483,248" marker-end="url(#ar)"/>
+  <path class="w" style="stroke:#12a077" d="M370,186 C420,220 440,256 483,256" marker-end="url(#ar)"/>
+  <!-- MB102 3V3 to ADS -->
+  <path class="w" style="stroke:#8a4fff" d="M160,250 C300,330 380,300 468,284" marker-end="url(#ar)"/>
+  <!-- ADS SPI to Pico -->
+  <path class="w" style="stroke:#2d7dd2" d="M640,225 C680,225 690,222 723,222" marker-end="url(#ar)"/>
+  <!-- shared ground rail hint -->
+  <path class="w" style="stroke:#3a3d44;stroke-dasharray:5 5" d="M555,300 C555,360 795,360 795,300"/>
+  <text class="bs" x="675" y="352" text-anchor="middle">shared GND rail</text>
+</svg>
+
+<h2><span class="n">4.</span> Wire it up — step by step</h2>
+<div class="warn">
+  <b>⚠ The one mistake that kills a Pico:</b> the RP2040's GPIO pins are
+  <b>3.3V maximum — not 5V tolerant</b>. If you power the ADS1220's logic from 5V,
+  its <code>DOUT</code> line will push 5V into the Pico and damage it. So the ADS1220
+  runs on <b>3.3V</b>. Only the <b>AFE</b> gets 5V.
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">Your Dupont wires — gender + which breadboard row</h3>
+  <p>You only have Dupont jumpers, so two rules keep it sane.</p>
+  <p><b>Rule 1 — the gender you need is the opposite of what you plug into:</b></p>
+  <table>
+    <tr><th>Plugging into…</th><th>Use this Dupont end</th></tr>
+    <tr><td>Breadboard hole (female socket)</td><td><b>Male</b></td></tr>
+    <tr><td>A male header pin (ADS1220 pins, breakout pins, AFE pins)</td><td><b>Female</b></td></tr>
+  </table>
+  <p><b>Rule 2 — seat the ADS1220 on the breadboard, straddling the center gap.</b>
+  Push its male pins down into the holes so the two sides of the chip land on opposite
+  sides of the center notch. Now <em>each ADS1220 pin owns a 5-hole row</em>. To connect
+  to a pin, plug your wire into any <b>other hole in that same row</b> — the 5 holes on one
+  side of the gap are one electrical node. To reach power, run a jumper from that row to the
+  <span class="tag t-pwr">+5V</span>, <span class="tag t-v3">+3V3</span>, or
+  <span class="tag t-gnd">GND</span> rail.</p>
+
+  <p><b>What each link needs</b> (breadboard = female holes; ADS1220 seated):</p>
+  <table>
+    <tr><th>Connection</th><th>From → To</th><th>Dupont</th></tr>
+    <tr><td>Rails → seated ADS1220 rows (AVDD, DVDD, AGND, DGND, CLK)</td><td>hole → hole</td><td><b>male–male</b></td></tr>
+    <tr><td><span class="tag t-spi">SPI ×5</span> ADS rows → Pico breakout pins</td><td>hole → male pin</td><td><b>male–female</b></td></tr>
+    <tr><td>Pico breakout <code>3V3</code> / <code>GND</code> pins → rails</td><td>male pin → hole</td><td><b>male–female</b></td></tr>
+    <tr><td><span class="tag t-analog">Analog ×4</span> AFE pins → ADS1220 rows</td><td>male pin → hole</td><td><b>male–female</b></td></tr>
+    <tr><td>AFE <code>VIN</code> / <code>GND</code> pins → rails</td><td>male pin → hole</td><td><b>male–female</b></td></tr>
+  </table>
+  <p><b>Inventory check:</b> with the ADC seated you need mostly <b>male–male</b> and
+  <b>male–female</b> jumpers. You only need <b>female–female</b> if you leave the ADS1220
+  <em>loose</em> (unseated) and join its male pins straight onto AFE/breakout male pins with
+  no breadboard in between — not the method here.</p>
+  <div class="warn" style="margin-bottom:0">
+    <b>Verify two connectors I can't see from here:</b> (1) your <b>Freenove breakout
+    headers</b> — if they are female sockets rather than male pins, those breakout links flip
+    to <b>male–male</b>; (2) your <b>AFE outputs</b> — if they come out as a 10-pin IDC ribbon
+    or a female header instead of male pins, adjust that end. Always apply Rule&nbsp;1 to what
+    is physically on the board.
+  </div>
+</div>
+
+<ol class="steps">
+  <li><b>Set up the MB102 power module (leave it OFF).</b> Plug the module onto the
+    <b>power-rail pair at one end</b> of the breadboard. Set its two voltage jumpers:
+    <b>one side → 5V</b> (for the AFE), <b>the other side → 3.3V</b> (for the ADS1220).
+    Keep the 9V adapter unplugged / module switch off for now.
+    <br><span style="color:var(--pwr)"><b>Note:</b> this module has <em>no adjustable current
+    limit</em> — unlike a bench supply, nothing trips on a short. Your safety net is the
+    wiring check in the last steps. Double-check before you power it.</span></li>
+  <li><b>Seat the ADS1220 on the breadboard.</b> Push it <b>across the center gap</b> —
+    male pins into the holes, its two pin-rows landing on opposite sides of the notch — so
+    every ADS1220 pin gets its own isolated 5-hole row. From here, every wire below means
+    "plug into the <b>same row</b> as pin X." The Pico stays on its Freenove breakout to the side.</li>
+  <li><b>Confirm your rails.</b> The MB102 energizes both rail pairs at once: one red rail is
+    <span class="tag t-pwr">+5V</span>, the other red rail is <span class="tag t-v3">+3V3</span>,
+    and both blue rails are <span class="tag t-gnd">GND</span> (common through the module).
+    Run one jumper to <b>bridge the two blue GND rails</b> so ground is rock-solid.
+    You do <b>not</b> use the Pico's 3V3 pin anymore — the module supplies 3.3V directly.</li>
+  <li><b>Tie all grounds together.</b> The GND rail must join the MB102&nbsp;−, the Pico's GND
+    (via a breakout <code>GND</code> header — the Pico is powered over its own USB),
+    ADS1220 <code>AGND</code>+<code>DGND</code>, and AFE GND. <em>No shared ground = nonsense readings.</em>
+    (This is the dashed loop in the schematic and the dark wires in 3D.)</li>
+  <li><b>Power the ADS1220 from 3V3.</b> <code>AVDD</code>→+3V3, <code>DVDD</code>→+3V3,
+    <code>AGND</code>/<code>DGND</code>→GND, <code>CLK</code>→GND (uses the internal
+    oscillator). Leave <code>REFP0/REFN0</code> unconnected — we use the internal 2.048V reference.</li>
+  <li><b>Wire SPI to the Pico</b> <span class="tag t-spi">5 wires</span>:
+    <code>SCLK→GP18</code>, <code>DIN/MOSI→GP19</code>, <code>DOUT/MISO→GP16</code>,
+    <code>CS→GP17</code>, <code>DRDY→GP20</code>. Each is a <b>male–female</b> Dupont: male end
+    into the ADS1220 pin's row, female end onto the breakout's labeled <code>GP##</code> header.</li>
+  <li><b>Power the AFE.</b> AFE <code>VIN</code> → the <span class="tag t-pwr">+5V rail</span>
+    (never to the ADC), AFE <code>GND</code> → GND rail. <em>The MB102 output is convenient but
+    electrically noisier than a lab supply — fine for bring-up; revisit supply quality later for
+    clean ppb-level data.</em></li>
+  <li><b>Wire the analog signals</b> <span class="tag t-analog">4 wires</span>, kept short:
+    H2S <code>WE→AIN0</code>, <code>AE→AIN1</code>, <code>Pt1000+→AIN2</code>,
+    <code>Pt1000−→AIN3</code>. <b>male–female</b> Dupont: female onto the AFE output pin, male
+    into the <b>same breadboard row</b> as that ADS1220 input. Confirm which <code>OP</code>
+    pins are the populated H2S slot from the board silkscreen + calibration sheet.</li>
+  <li><b>Meter check before power-on.</b> With the MB102 still off, ohm-check that the +5V rail
+    and GND rail are <em>not</em> shorted, that the +3V3 and +5V rails aren't touching, and that
+    each ADS1220 pin lands in the row you intended.</li>
+  <li><b>Power on, watch for trouble.</b> Plug in the 9V adapter and switch the MB102 on. Nothing
+    should get warm, and the module shouldn't brown out or flicker. If anything heats up or the
+    3.3V/5V rails sag, switch off immediately — you have a short (no current limit to save you).</li>
+  <li><b>Sanity-meter the AFE outputs.</b> Measure WE and AE vs GND. They should read a
+    steady voltage <b>between 0 and 3.3V</b>. If either exceeds 3.3V, stop and <b>move the
+    ADS1220 <code>AVDD</code> wire to the 5V rail</b> while keeping <code>DVDD</code>/logic on
+    the 3.3V rail (Pico safety).</li>
+</ol>
+
+<div class="tip">
+  <b>Next lesson preview:</b> with this wired, Lesson 02 writes the TinyGo ADS1220 driver —
+  configure the mux for <code>AIN0–AIN1</code>, set the PGA and 20&nbsp;SPS data rate, pick the
+  internal 2.048V reference, then read <code>DRDY</code> and pull the 24-bit sample. That's your
+  first number. (ADR-0006 calls for exactly this driver.)
+</div>
+
+<h2><span class="n">5.</span> Check yourself</h2>
+<div class="card">
+  <p><b>Q1.</b> Why can't the Pico's 3.3V power the AFE directly?</p>
+  <p class="bs" style="cursor:pointer" onclick="this.nextElementSibling.style.display='block'">▸ reveal</p>
+  <p style="display:none">The AFE needs <b>3.5–6.4V</b>. 3.3V is below its minimum, so it wouldn't bias the sensor correctly. That's why the bench supply (5V) feeds VIN.</p>
+  <p><b>Q2.</b> The ADS1220 has 4 analog inputs but the H2S sensor gives 2 outputs (WE, AE). What are AIN2 and AIN3 for?</p>
+  <p class="bs" style="cursor:pointer" onclick="this.nextElementSibling.style.display='block'">▸ reveal</p>
+  <p style="display:none">The AFE's on-board <b>Pt1000 temperature sensor</b> (AIN2=Pt1000+, AIN3=Pt1000−), read as a second differential pair. You need temperature to interpret the gas reading.</p>
+  <p><b>Q3.</b> You measure AE = 4.1V. What do you do before connecting it to the ADC?</p>
+  <p class="bs" style="cursor:pointer" onclick="this.nextElementSibling.style.display='block'">▸ reveal</p>
+  <p style="display:none">4.1V &gt; 3.3V AVDD, so it's out of range. Move the ADS1220 <b>AVDD wire to the 5V rail</b> (keep DVDD/logic on the 3.3V rail for Pico safety) so the input range covers the signal.</p>
+</div>
+
+<div class="ask">
+  <b>💬 I'm your teacher — ask me.</b> Stuck on which OP pin is H2S? Want the TinyGo
+  driver next? Not sure how to set the current limit on your specific supply? Just ask in chat.
+  Say <code>next lesson</code> for the ADS1220 driver, or <code>quiz me</code> to be tested
+  out loud on the signal chain.
+</div>
+
+<footer>
+  <p><b>Sources:</b>
+  <a href="https://www.ti.com/lit/ds/symlink/ads1220.pdf">TI ADS1220 datasheet</a> ·
+  <a href="https://www.alphasense.com/products/support-circuits-safety/">Alphasense AFE board</a> ·
+  <a href="https://tinygo.org/docs/reference/microcontrollers/machine/pico-w/">TinyGo pico-w SPI ref</a> ·
+  <a href="https://how2electronics.com/how-to-use-ads1220-24-bit-adc-module-with-arduino/">ADS1220 breakout wiring walkthrough</a> ·
+  <a href="https://randomnerdtutorials.com/raspberry-pi-pico-w-pinout-gpios/">Pico W pinout</a>.
+  Design decisions: repo <code>docs/adr/0006-sulfur-gas-sensor-afe-architecture.md</code>.</p>
+</footer>
+</div>
+
+<!-- three.js -->
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+<script>
+(function(){
+  const host = document.getElementById('viewer');
+  if(!window.THREE){ host.insertAdjacentHTML('beforeend',
+    '<div style="position:absolute;inset:0;display:grid;place-items:center;color:#5c7080;font:14px sans-serif;text-align:center;padding:20px">3D view needs internet (three.js CDN).<br>The schematic below shows the same wiring.</div>'); return; }
+
+  const W = ()=>host.clientWidth, H = ()=>host.clientHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, W()/H(), 0.1, 500);
+  camera.position.set(18, 16, 22);
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(W(),H());
+  host.appendChild(renderer.domElement);
+
+  const labelRenderer = new THREE.CSS2DRenderer();
+  labelRenderer.setSize(W(),H());
+  labelRenderer.domElement.style.position='absolute';
+  labelRenderer.domElement.style.top='0';
+  labelRenderer.domElement.style.pointerEvents='none';
+  host.appendChild(labelRenderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff,0.85));
+  const key = new THREE.DirectionalLight(0xffffff,0.7); key.position.set(10,20,12); scene.add(key);
+  const fill = new THREE.DirectionalLight(0xffffff,0.3); fill.position.set(-12,8,-10); scene.add(fill);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.target.set(0,1,0);
+  controls.maxPolarAngle = Math.PI*0.49;
+
+  // ---- helpers ----
+  function board(x,z,w,d,color,y=0.5){
+    const g = new THREE.Mesh(new THREE.BoxGeometry(w,0.5,d),
+      new THREE.MeshLambertMaterial({color}));
+    g.position.set(x,y,z); scene.add(g); return g;
+  }
+  function label(text, x,y,z, cls='lbl'){
+    const el = document.createElement('div'); el.className=cls; el.textContent=text;
+    const o = new THREE.CSS2DObject(el); o.position.set(x,y,z); scene.add(o); return o;
+  }
+  const wires = []; // {mesh, net}
+  function wire(a,b,color,net,arc=4){
+    const mid = new THREE.Vector3((a.x+b.x)/2,(Math.max(a.y,b.y))+arc,(a.z+b.z)/2);
+    const curve = new THREE.QuadraticBezierCurve3(a,mid,b);
+    const geo = new THREE.TubeGeometry(curve, 24, 0.13, 8, false);
+    const mat = new THREE.MeshLambertMaterial({color, transparent:true, opacity:1});
+    const m = new THREE.Mesh(geo,mat); scene.add(m); wires.push({mesh:m, net}); return m;
+  }
+  const V = (x,y,z)=>new THREE.Vector3(x,y,z);
+
+  // ---- breadboard ----
+  const bb = board(0,0,20,9,0xe9d9a8,0.3);
+  // power rails (visual strips)
+  const railR = new THREE.Mesh(new THREE.BoxGeometry(20,0.12,0.5),
+    new THREE.MeshLambertMaterial({color:0xe4572e})); railR.position.set(0,0.62,3.6); scene.add(railR);
+  const rail3 = new THREE.Mesh(new THREE.BoxGeometry(20,0.12,0.5),
+    new THREE.MeshLambertMaterial({color:0x8a4fff})); rail3.position.set(0,0.62,2.7); scene.add(rail3);
+  const railG = new THREE.Mesh(new THREE.BoxGeometry(20,0.12,0.5),
+    new THREE.MeshLambertMaterial({color:0x3a3d44})); railG.position.set(0,0.62,-3.6); scene.add(railG);
+  label('breadboard', 0,1.1,4.6);
+
+  // ---- components ----
+  // MB102 breadboard power module (plugs onto the rail pair at one end)
+  const supply = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.9,8),
+    new THREE.MeshLambertMaterial({color:0x1c66c9}));
+  supply.position.set(-8.5,1.1,0); scene.add(supply);
+  label('MB102 power · 5V + 3V3', -8.5,2.4,0);
+  // AFE (back-left) + sensor cylinder
+  const afe = board(-6,-2.4,5,4,0x1f8f57,0.95);
+  const sensor = new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,1.4,24),
+    new THREE.MeshLambertMaterial({color:0x2b2d33})); sensor.position.set(-6,1.9,-2.4); scene.add(sensor);
+  label('AFE (H2S)', -6,3.4,-2.4);
+  // ADS1220 (center, purple)
+  const adc = board(0.5,-0.3,3.6,3.4,0x8a4fff,0.95);
+  label('ADS1220', 0.5,2.0,-0.3, 'lbl pin');
+  // Freenove breakout board (right) with the Pico W pinned on top of it
+  const freenove = board(8,1.0,5.6,7,0x123a2a,0.95); // dark PCB
+  label('Freenove breakout', 8,1.0,-3.4);
+  // labeled header pin rows down both long edges (S / V / G style)
+  function pinRow(xEdge){
+    for(let i=0;i<8;i++){
+      const p = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.55,0.28),
+        new THREE.MeshLambertMaterial({color:0xffd23f}));
+      p.position.set(xEdge, 1.45, -2.6 + i*0.75); scene.add(p);
+    }
+  }
+  pinRow(5.7); pinRow(10.3);
+  // Pico W seated ON TOP of the breakout, raised on its 40 header pins
+  const pico = board(8,1.2,3.0,5.0,0x146a3a,2.05);
+  label('Pico W', 8,3.2,1.2, 'lbl pin');
+  // the header pins that clip the Pico onto the breakout (the "pinned on" look)
+  for(let i=0;i<6;i++){
+    const zz = -1.7 + i*0.7;
+    [7.0,9.0].forEach(xx=>{
+      const hp = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.05,6),
+        new THREE.MeshLambertMaterial({color:0x2b2d33}));
+      hp.position.set(xx,1.6,zz); scene.add(hp);
+    });
+  }
+
+  // ---- wires (grouped/representative) ----
+  // MB102 module -> rails: 5V, 3V3, GND (module supplies both voltages)
+  wire(V(-8.5,1.6,2.6), V(-6,0.7,3.6), 0xe4572e,'pwr',1.6);   // 5V rail
+  wire(V(-8.5,1.6,1.7), V(-6,0.7,2.7), 0x8a4fff,'v3',1.6);    // 3V3 rail
+  wire(V(-8.5,1.6,-2.6), V(-6,0.7,-3.6), 0x3a3d44,'gnd',1.6); // GND rail
+  // AFE power from rails
+  wire(V(-6,1.3,-0.6), V(-7,0.7,3.6), 0xe4572e,'pwr',2.5);
+  wire(V(-6,1.3,-1.0), V(-7.5,0.7,-3.6), 0x3a3d44,'gnd',2.5);
+  // AFE analog -> ADS1220 (bundle of 4)
+  wire(V(-4,1.3,-2.4), V(-1.1,1.3,-0.3), 0x12a077,'analog',2.2);
+  wire(V(-4,1.3,-1.9), V(-1.1,1.3,0.2), 0x12a077,'analog',2.6);
+  label('WE·AE·Pt1000 ×4', -2.5,3.0,-1.4);
+  // ADS1220 power from rails (3V3 + GND)
+  wire(V(0.2,1.3,0.6), V(1.5,0.7,2.7), 0x8a4fff,'v3',1.8);
+  wire(V(-0.8,1.3,-1.2), V(-1,0.7,-3.6), 0x3a3d44,'gnd',1.8);
+  // Pico breakout GND -> shared GND rail (Pico itself powered over USB)
+  wire(V(5.7,1.7,-1.4), V(9.5,0.7,-3.6), 0x3a3d44,'gnd',2.4);
+  // ADS1220 SPI -> Freenove breakout header (bundle of 5) -> Pico GPIO
+  wire(V(2.2,1.3,-0.9), V(5.7,1.7,0.2), 0x2d7dd2,'spi',2.2);
+  wire(V(2.2,1.3,-0.4), V(5.7,1.7,0.9), 0x2d7dd2,'spi',2.6);
+  label('SPI ×5 → breakout', 4.0,3.0,0.4,'lbl pin');
+
+  // ---- net highlight ----
+  function setNet(net){
+    wires.forEach(w=>{
+      const on = (net==='all' || w.net===net);
+      w.mesh.material.opacity = on ? 1 : 0.06;
+    });
+    document.querySelectorAll('#vctl button[data-net]').forEach(b=>
+      b.classList.toggle('on', b.dataset.net===net));
+  }
+  document.querySelectorAll('#vctl button[data-net]').forEach(b=>
+    b.addEventListener('click',()=>setNet(b.dataset.net)));
+
+  // spin toggle
+  let spin=false;
+  document.getElementById('spin').addEventListener('click',e=>{
+    spin=!spin; e.target.classList.toggle('on',spin);
+  });
+
+  // ---- resize + loop ----
+  addEventListener('resize',()=>{
+    camera.aspect=W()/H(); camera.updateProjectionMatrix();
+    renderer.setSize(W(),H()); labelRenderer.setSize(W(),H());
+  });
+  (function loop(){
+    requestAnimationFrame(loop);
+    if(spin){ const t=Date.now()*0.0002; camera.position.x=Math.cos(t)*28; camera.position.z=Math.sin(t)*28; }
+    controls.update();
+    renderer.render(scene,camera);
+    labelRenderer.render(scene,camera);
+  })();
+})();
+</script>
+</body>
+</html>

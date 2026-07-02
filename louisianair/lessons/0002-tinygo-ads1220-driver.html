@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 02 · TinyGo ADS1220 + MQTT First H2S Reading</title>
+<style>
+  :root{--ink:#122029;--muted:#5c7080;--line:#dbe3e8;--bg:#f5f8fa;--card:#fff;--accent:#2d7dd2;--ok:#12a077;--warn:#e4572e;--code:#0f1720;--h2s:#f2b705;--mqtt:#7c3aed}
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);margin:0;background:radial-gradient(circle at 15% 0,#fff7d8 0 220px,transparent 221px),var(--bg)}
+  .wrap{max-width:980px;margin:auto;padding:34px 20px 72px}
+  header,.card{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:18px;padding:24px;margin:0 0 18px;box-shadow:0 8px 24px #12202910}
+  .kicker{color:var(--accent);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.lede{font-size:19px;color:var(--muted);margin:4px 0 0}.mission{margin-top:16px;padding:13px 15px;border-left:5px solid var(--ok);background:#eaf8f3;border-radius:10px}
+  h1{font-size:34px;line-height:1.12;margin:8px 0}h2{font-size:23px;margin:32px 0 10px}h3{font-size:18px;margin:22px 0 8px}.n{color:var(--accent)}
+  p{margin:10px 0}a{color:var(--accent)}code{background:#eef2f5;border:1px solid #dce5eb;padding:1px 6px;border-radius:6px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:var(--code);color:#d9f2ff;border-radius:14px;padding:16px;overflow:auto;font:13.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}pre b{color:#fff09a}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.mini{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}.mini b{display:block;margin-bottom:4px}.warn{background:#fff5f1;border:1px solid #f3c4b4;border-left:5px solid var(--warn);padding:14px;border-radius:12px}.tip{background:#eef4fb;border-left:5px solid var(--accent);padding:14px;border-radius:12px}
+  table{width:100%;border-collapse:collapse;margin:8px 0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.pill{display:inline-block;border-radius:999px;padding:2px 9px;color:#fff;font-size:12px;font-weight:800}.h2s{background:var(--h2s);color:#2b2100}.spi{background:var(--accent)}.mqtt{background:var(--mqtt)}.ok{background:var(--ok)}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0}.flow div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;font-weight:800}.flow small{display:block;color:var(--muted);font-weight:500}.arrow:after{content:" →";color:var(--muted)}
+  .quiz{background:#111a20;color:#dfe8ee;border-radius:16px;padding:20px}.quiz code{background:#20303a;color:#bfe0ff;border-color:#334753}footer{color:var(--muted);font-size:13px;margin-top:34px}@media(max-width:720px){.flow{grid-template-columns:1fr}.arrow:after{content:" ↓"}h1{font-size:28px}}
+</style>
+</head>
+<body><div class="wrap">
+<header>
+  <div class="kicker">Louisianair · Lesson 02 · firmware bring-up</div>
+  <h1>TinyGo ADS1220 + MQTT: first H2S reading</h1>
+  <p class="lede">Make the Pico W read the ADS1220 over SPI, then shape that reading for the existing Louisianair MQTT path on Fly.io.</p>
+  <div class="mission">🎯 <b>Mission:</b> get one H2S electrode pair from Lesson 01 to become a signed 24-bit count, then understand how that count will ride the deployed MQTT route: <code>os-mqtt-gateway.fly.dev:1883</code>.</div>
+</header>
+
+<section class="card">
+<h2><span class="n">1.</span> The one real path</h2>
+<div class="flow">
+  <div class="arrow"><span class="pill h2s">H2S</span><small>Alphasense cell</small></div>
+  <div class="arrow">AFE<small>WE/AE voltages</small></div>
+  <div class="arrow">ADS1220<small>24-bit count</small></div>
+  <div class="arrow">Pico W<small>TinyGo + WiFi</small></div>
+  <div><span class="pill mqtt">MQTT</span><small>Fly.io broker</small></div>
+</div>
+<p>Old firmware prototypes read SGP30, MQ-style, and SEN0568 sensors. Those sensors differ. Reuse the boring parts: WiFi, NTP, MQTT client, Makefile env vars. Replace only the sensor-reading middle with ADS1220 + Alphasense H2S.</p>
+<div class="warn"><b>Do not publish calibrated ppb yet.</b> First lesson goal is transport: raw count / volts / temporary H2S index. Real <code>h2s_ppb</code> waits for AFE calibration sheet zero + gain.</div>
+</section>
+
+<section class="card">
+<h2><span class="n">2.</span> Wiring contract from Lesson 01</h2>
+<table>
+<tr><th>Signal</th><th>ADS1220 pin</th><th>Pico W / role</th></tr>
+<tr><td>H2S WE output</td><td><code>AIN0</code></td><td>positive analog input</td></tr>
+<tr><td>H2S AE output</td><td><code>AIN1</code></td><td>negative analog input</td></tr>
+<tr><td>Pt1000+</td><td><code>AIN2</code></td><td>next lesson: temperature differential</td></tr>
+<tr><td>Pt1000−</td><td><code>AIN3</code></td><td>next lesson: temperature differential</td></tr>
+<tr><td>SCLK / DIN / DOUT / CS</td><td>SPI pins</td><td><code>GP18</code>, <code>GP19</code>, <code>GP16</code>, <code>GP17</code></td></tr>
+<tr><td>DRDY</td><td><code>DRDY</code></td><td><code>GP20</code>; goes low when data ready</td></tr>
+</table>
+<p>ADS1220 logic stays 3.3V. AFE can stay on 5V. Grounds must be shared.</p>
+</section>
+
+<section class="card">
+<h2><span class="n">3.</span> ADS1220 setup bytes</h2>
+<p>We configure one differential pair: <code>AIN0 - AIN1</code>. PGA bypass stays on because bench signals may sit near ground and gain is 1.</p>
+<div class="grid">
+  <div class="mini"><b>Command</b><code>WREG 0..3 = 0x43</code><p>Write four config registers.</p></div>
+  <div class="mini"><b>Reg 0 = <code>0x01</code></b><p>MUX AIN0/AIN1, gain 1, PGA bypass.</p></div>
+  <div class="mini"><b>Reg 1 = <code>0x04</code></b><p>20 SPS, normal mode, continuous conversion.</p></div>
+  <div class="mini"><b>Reg 2 = <code>0x00</code></b><p>Internal 2.048V reference, no IDAC.</p></div>
+  <div class="mini"><b>Reg 3 = <code>0x00</code></b><p>Dedicated DRDY pin, no IDAC routing.</p></div>
+</div>
+<pre><code>// Bytes sent after RESET:
+0x43, 0x01, 0x04, 0x00, 0x00
+// Then START/SYNC once:
+0x08
+// Each ready sample:
+0x10, read 3 bytes</code></pre>
+</section>
+
+<section class="card">
+<h2><span class="n">4.</span> TinyGo driver skeleton</h2>
+<p>This is intentionally tiny. No package gymnastics yet. Drop it into a future <code>sulfurmqtt</code> app or into a quick bench folder in <code>../aethernet-firmware</code>.</p>
+<pre><code>package main
+
+import (
+    "machine"
+    "time"
+)
+
+const (
+    adsReset = 0x06
+    adsStart = 0x08
+    adsRData = 0x10
+    adsWReg0 = 0x43 // write registers 0..3
+)
+
+type ADS1220 struct {
+    spi  *machine.SPI
+    cs   machine.Pin
+    drdy machine.Pin
+}
+
+func (d *ADS1220) Configure() error {
+    d.cs.Configure(machine.PinConfig{Mode: machine.PinOutput})
+    d.drdy.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
+    d.cs.High()
+
+    if err := d.cmd(adsReset); err != nil { return err }
+    time.Sleep(1 * time.Millisecond)
+
+    // AIN0-AIN1, gain 1, PGA bypass; 20 SPS continuous; internal 2.048V ref.
+    if err := d.tx([]byte{adsWReg0, 0x01, 0x04, 0x00, 0x00}, nil); err != nil { return err }
+    return d.cmd(adsStart)
+}
+
+func (d *ADS1220) ReadRaw() (int32, error) {
+    for d.drdy.Get() { time.Sleep(time.Millisecond) }
+
+    rx := make([]byte, 4)
+    if err := d.tx([]byte{adsRData, 0, 0, 0}, rx); err != nil {
+        return 0, err
+    }
+
+    // rx[0] is the command-time byte. Data arrives in rx[1:4].
+    b0, b1, b2 := rx[1], rx[2], rx[3]
+    raw := int32(b0)&lt;&lt;16 | int32(b1)&lt;&lt;8 | int32(b2)
+    if raw&amp;0x800000 != 0 { raw |= ^0xFFFFFF } // sign-extend 24-bit two's complement
+    return raw, nil
+}
+
+func (d *ADS1220) Volts(raw int32) float32 {
+    return float32(raw) * 2.048 / 8388608.0 // gain 1, internal ref
+}
+
+func (d *ADS1220) cmd(c byte) error { return d.tx([]byte{c}, nil) }
+
+func (d *ADS1220) tx(w, r []byte) error {
+    d.cs.Low(); defer d.cs.High()
+    return d.spi.Tx(w, r)
+}</code></pre>
+<div class="tip"><b>Lazy check:</b> first prove <code>ReadRaw()</code> changes when WE/AE wiring changes. Then clean the SPI helper. Do not build a full driver library before one number prints.</div>
+</section>
+
+<section class="card">
+<h2><span class="n">5.</span> Bench <code>main.go</code></h2>
+<pre><code>func main() {
+    machine.SPI0.Configure(machine.SPIConfig{
+        Frequency: 1_000_000,
+        SCK: machine.GPIO18, SDO: machine.GPIO19, SDI: machine.GPIO16,
+    })
+
+    adc := ADS1220{spi: machine.SPI0, cs: machine.GPIO17, drdy: machine.GPIO20}
+    if err := adc.Configure(); err != nil { println("ads config:", err.Error()); return }
+
+    for {
+        raw, err := adc.ReadRaw()
+        if err != nil { println("ads read:", err.Error()); continue }
+        volts := adc.Volts(raw)
+        println("h2s_raw=", raw, "h2s_volts=", volts)
+        time.Sleep(5 * time.Second)
+    }
+}</code></pre>
+<p>If serial shows numbers, Lesson 02 hardware+SPI is alive. If it sticks at max/min, suspect wiring, shared ground, or AFE output outside ADC range.</p>
+</section>
+
+<section class="card">
+<h2><span class="n">6.</span> Send it through existing MQTT path</h2>
+<p>The firmware repo already has the deployed route:</p>
+<table>
+<tr><th>Env var</th><th>Use</th><th>Current pattern</th></tr>
+<tr><td><code>MQTT_ADDR</code></td><td>broker</td><td><code>os-mqtt-gateway.fly.dev:1883</code></td></tr>
+<tr><td><code>MQTT_USER</code></td><td>topic account + auth username</td><td><code>picopuff</code> or assigned user</td></tr>
+<tr><td><code>MQTT_PASS</code></td><td>auth password</td><td>secret, do not commit</td></tr>
+<tr><td><code>MQTT_DEVICE</code></td><td>backend device slug</td><td>lowercased Pico MAC / registered source key</td></tr>
+<tr><td><code>MQTT_TOPIC</code></td><td>override</td><td>usually blank</td></tr>
+</table>
+<p>Default topic resolves to:</p>
+<pre><code>louisianair/dev/&lt;MQTT_USER&gt;/&lt;MQTT_DEVICE&gt;/telemetry</code></pre>
+<p>Existing canonical payload shape is:</p>
+<pre><code>{
+  "source_reading_key": "&lt;device&gt;:&lt;unix-ns&gt;:&lt;since-boot-ns&gt;",
+  "recorded_at": "2026-07-02T14:30:00Z",
+  "measurements": {
+    "temperature": 26.1,
+    "humidity": 62.0,
+    "h2s_index": 1.04
+  }
+}</code></pre>
+<div class="warn"><b>Firmware note:</b> current <code>mqttsensor/mqtt.SensorReading</code> knows <code>Ratio</code> → <code>h2s_index</code>. It does not yet know <code>h2s_raw</code>, <code>h2s_volts</code>, or calibrated <code>h2s_ppb</code>. For the first MQTT smoke test, publish <code>Ratio</code> or extend that struct later when backend accepts sulfur fields.</div>
+<pre><code>// Conceptual bridge inside sulfurmqtt main loop:
+raw, _ := adc.ReadRaw()
+volts := adc.Volts(raw)
+
+// Temporary transport smoke value. Real ppb comes after calibration sheet math.
+h2sIndex := volts // or normalized volts/baseline once baseline exists
+
+readings &lt;- mqtt.SensorReading{
+    Ratio: h2sIndex,
+    Timestamp: ntpTime,
+    SinceBootNS: time.Duration(time.Now().UnixNano()),
+}</code></pre>
+<p>Build/flash still follows the existing Makefile pattern:</p>
+<pre><code>MQTT_ADDR=os-mqtt-gateway.fly.dev:1883 \
+MQTT_USER=picopuff \
+MQTT_PASS='ask-your-instructor' \
+MQTT_DEVICE='aa:bb:cc:dd:ee:ff' \
+make flash/sulfurmqtt</code></pre>
+<p><code>flash/sulfurmqtt</code> does not exist yet. Next firmware task: copy the existing <code>sgp30mqtt</code> app shape, replace sensor read code with ADS1220, keep WiFi/NTP/MQTT plumbing.</p>
+</section>
+
+<section class="card">
+<h2><span class="n">7.</span> Debug map</h2>
+<table>
+<tr><th>Symptom</th><th>Likely cause</th><th>First fix</th></tr>
+<tr><td>DRDY never goes low</td><td>Wrong DRDY pin, no START, ADC not powered</td><td>Check GP20 wire, 3.3V, GND, START byte</td></tr>
+<tr><td>All reads <code>0x7FFFFF</code> or <code>0x800000</code></td><td>Input over range or floating</td><td>Meter AIN0/AIN1 vs GND; verify AFE outputs</td></tr>
+<tr><td>MQTT DNS fails</td><td>WiFi/DHCP not ready</td><td>Reuse existing <code>cyw43439</code> setup + NTP flow</td></tr>
+<tr><td>Backend ignores message</td><td>Bad topic/device slug/schema</td><td>Use lowercased MAC as <code>MQTT_DEVICE</code>; keep default topic</td></tr>
+</table>
+</section>
+
+<section class="quiz">
+<h2>Check yourself</h2>
+<p><b>Q1.</b> Why read WE-AE as <code>AIN0-AIN1</code> instead of one Pico ADC pin?</p>
+<p><b>Q2.</b> What does <code>0x43 0x01 0x04 0x00 0x00</code> configure?</p>
+<p><b>Q3.</b> Which firmware pieces survive from SGP30/MQ2 prototypes?</p>
+<p><b>Answers:</b> Q1: ADS1220 gives low-noise differential 24-bit data; Pico ADC is not enough. Q2: write regs 0..3: H2S WE/AE pair, gain 1, PGA bypass, 20 SPS continuous, internal ref. Q3: WiFi, NTP, MQTT, env vars, topic routing; sensor read + measurement schema change.</p>
+</section>
+
+<footer>
+Sources: <a href="https://www.ti.com/lit/ds/symlink/ads1220.pdf">TI ADS1220 datasheet</a>, <a href="https://tinygo.org/docs/reference/microcontrollers/machine/pico-w/">TinyGo Pico W machine reference</a>, <a href="https://www.alphasense.com/products/support-circuits-safety/">Alphasense AFE docs</a>, local <code>../aethernet-firmware</code> MQTT code and <code>.env.example</code>. Lesson 03: turn counts → volts → H2S ppb with calibration sheet and backend sulfur fields.
+</footer>
+</div></body></html>
