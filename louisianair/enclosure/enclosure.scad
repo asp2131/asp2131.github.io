@@ -1,16 +1,21 @@
-// Louisianair outdoor enclosure: ASA (or PETG for test fits), three parts.
+// Louisianair outdoor enclosure: ASA (or PETG for test fits), four parts.
 // Export: openscad -D part=\"tray\" -o tray.stl enclosure.scad
 //         openscad -D part=\"lid\"  -o lid.stl  enclosure.scad
 //         openscad -D part=\"pod\"  -o pod.stl  enclosure.scad
+//         openscad -D part=\"deck\" -o deck.stl enclosure.scad
 //
-// Layout: one sealed bay. Power bank on the floor, Maker Pi Pico + ASB on a
-// deck above it, AFE on standoffs at the far end, sensors pointing down.
+// Layout: one sealed bay. Power bank on the floor, dropped in between two wall
+// ledges. A removable deck plate screws onto the ledges over the bank and carries
+// the Maker Pi Pico + ASB. Boards are narrower than the bank, so nothing may stand
+// on the floor under them. AFE on standoffs at the far end, sensors pointing down.
+// A gap at the gland end of the deck lets the USB cable climb from bank to Pico.
+// Assembly: bank in, deck plate on (4 x M3 into the ledges), boards on the plate.
 // Only the sensor faces (H2S in SN1, SO2 in SN2) meet outside air: each presses
 // on a foam ring over a hole in the floor. The pod (open-bottom hood) glues
 // under both holes.
 // Wall-mount via the flange on the back wall; leave air space under the box.
 
-part = "both"; // tray | lid | pod | both
+part = "both"; // tray | lid | pod | deck | both
 
 // ---- board data (mm) ----
 // Maker Pi Pico: Cytron datasheet fig 4
@@ -39,6 +44,13 @@ floor_t = 2.4;
 clr = 2;           // board-to-wall clearance
 gap = 6;           // gap between Maker and ASB on the deck
 comp_h = 22;       // tallest stuff above the deck boards (Pico W + Grove plugs)
+// deck: plate on wall ledges, boards on short standoffs on the plate
+ledge_w = 8;       // how far each ledge sticks out of its wall; bank drops in between
+ledge_h = 8;       // solid ledge depth below its top (holds the M3 insert)
+bank_clr = 2;      // air between bank top and deck plate underside
+plate_t = 2.4;
+post_h = 5;        // board standoffs on the plate; plate + post must be > insert_l
+cable_gap = 12;    // open strip at the gland end of the deck for the USB cable
 insert_d = 4.2;    // M3 heat-set insert hole; check your insert's spec
 insert_l = 6;
 m25_insert_d = 3.6;
@@ -55,15 +67,23 @@ foam_c = 1.0;      // foam thickness when squeezed
 pod = [32, 16];    // hood OD, drop below the floor; open bottom drains it
 
 // ---- derived ----
-bay_l = max(bank[0], maker[0] + gap + asb[0]) + 2*clr;
-in_w  = max(bank[1], maker[1], asb[1], afe[0]) + 2*clr;
+bay_l = cable_gap + max(bank[0], maker[0] + gap + asb[0]) + 2*clr;
+in_w  = max(bank[1] + 2*ledge_w + 2*clr, maker[1] + 2*clr, asb[1], afe[0] + 2*clr);
 afe_l = afe[1] + 2*clr + 8;           // extra room for the ribbon plug
 afe_z = boss[1] - seat_depth + foam_c + sensor_drop; // standoff height above the floor
-deck_z = bank[2] + 4;
-in_h  = max(deck_z + 1.6 + comp_h, afe_z + 1.6 + 12);
+deck_z = bank[2] + bank_clr;          // plate underside = ledge top, above the floor
+board_z = deck_z + plate_t + post_h;  // board underside above the floor
+in_h  = max(board_z + 1.6 + comp_h, afe_z + 1.6 + 12);
 L = wall + bay_l + afe_l + wall;
 W = 2*wall + in_w;
 H = floor_t + in_h;
+deck_x = wall + cable_gap;            // plate start; the cable gap is behind it
+deck_l = wall + bay_l - deck_x;
+bank_at = [wall + cable_gap + clr, wall + (in_w - bank[1])/2];
+maker_at = [deck_x + clr, wall + (in_w - maker[1])/2];
+asb_at = [maker_at[0] + maker[0] + gap, wall + (in_w - asb[1])/2];
+// plate screws, on the ledge centrelines near the plate ends
+plate_screws = [for (x = [deck_x + 5, deck_x + deck_l - 5], y = [wall + ledge_w/2, W - wall - ledge_w/2]) [x, y]];
 afe_at = [wall + bay_l + clr, wall + (in_w - afe[0])/2]; // AFE corner
 ports = [afe_at + sn1, afe_at + sn2];
 lug_r = 5;
@@ -102,15 +122,13 @@ module tray() {
         cube([L + 28, 4, H]);
         for (x = [7, L + 21], z = [H*0.3, H*0.75]) translate([x, -1, z]) rotate([-90,0,0]) cylinder(h=6, d=5);
       }
-      // bank cradle ribs
-      for (y = [wall + clr + bank[1] + 0.5]) translate([wall + 4, y, floor_t]) cube([bank[0] - 8, 2, 5]);
-      // deck: Maker Pi Pico + ASB standoffs above the bank
-      mx = wall + clr + (maker[0] - maker_holes[0])/2;
-      my = wall + clr + (maker[1] - maker_holes[1])/2;
-      for (i = [0,1], j = [0,1]) translate([mx + i*maker_holes[0], my + j*maker_holes[1], floor_t])
-        standoff(deck_z, 7, insert_d);
-      ax = wall + clr + maker[0] + gap;
-      for (h = asb_holes) translate([ax + h[0], wall + clr + h[1], floor_t]) standoff(deck_z, 7, insert_d);
+      // bank cradle ribs, one each side
+      for (y = [bank_at[1] - 2.5, bank_at[1] + bank[1] + 0.5]) translate([bank_at[0] + 4, y, floor_t]) cube([bank[0] - 8, 2, 5]);
+      // deck ledges on both long walls; 45° chamfer underneath so they print without support
+      for (side = [0, 1]) translate([deck_x, side ? W - wall : wall, 0]) mirror([0, side, 0]) hull() {
+        translate([0, -0.5, floor_t + deck_z - ledge_h]) cube([deck_l, ledge_w + 0.5, ledge_h]);
+        translate([0, -0.5, floor_t + deck_z - ledge_h - ledge_w]) cube([deck_l, 0.5, 0.01]);
+      }
       // AFE standoffs (M2.5); board sits sensor-side down. Shim with washers to set foam squeeze.
       for (i = [0,1], j = [0,1])
         translate([afe_at[0] + (afe[1] - afe_holes[1])/2 + i*afe_holes[1],
@@ -120,6 +138,8 @@ module tray() {
     }
     // lid screw inserts in the lugs (outside the gasket, so screws never leak)
     for (p = lug_at) translate([p[0], p[1], H - insert_l]) cylinder(h=insert_l+1, d=insert_d);
+    // deck plate inserts in the ledges
+    for (p = plate_screws) translate([p[0], p[1], floor_t + deck_z - insert_l]) cylinder(h=insert_l+1, d=insert_d);
     // sensor port: through-hole + foam-ring seat on top of the boss
     for (p = ports) translate([p[0], p[1], 0]) {
       translate([0, 0, -1]) cylinder(h=floor_t + boss[1] + 2, d=port_d);
@@ -152,6 +172,24 @@ module lid() {
   }
 }
 
+module deck() {
+  // printed flat; sits on the ledges, origin at the plate's corner (deck_x, wall + 0.5, ledge top).
+  // Boards bolt to the posts (M3 inserts); 4 x M3 pan heads hold it to the ledges.
+  w = in_w - 1;
+  mx = maker_at[0] - deck_x + (maker[0] - maker_holes[0])/2;
+  my = maker_at[1] - wall - 0.5 + (maker[1] - maker_holes[1])/2;
+  difference() {
+    union() {
+      cube([deck_l, w, plate_t]);
+      for (i = [0,1], j = [0,1]) translate([mx + i*maker_holes[0], my + j*maker_holes[1], plate_t]) standoff(post_h, 7, insert_d);
+      for (h = asb_holes) translate([asb_at[0] - deck_x + h[0], asb_at[1] - wall - 0.5 + h[1], plate_t]) standoff(post_h, 7, insert_d);
+    }
+    for (p = plate_screws) translate([p[0] - deck_x, p[1] - wall - 0.5, -1]) cylinder(h=plate_t + 2, d=3.4);
+    // vent slots so the bank's heat doesn't sit under the plate
+    for (x = [30 : 22 : deck_l - 30]) translate([x, w/2 - 12, -1]) cube([4, 24, plate_t + 2]);
+  }
+}
+
 module stadium(h, d) { hull() for (p = [[0, 0], sn2 - sn1]) translate(p) cylinder(h=h, d=d); }
 
 module hood() {
@@ -168,8 +206,10 @@ module hood() {
 if (part == "tray" || part == "both") tray();
 if (part == "lid") lid();
 if (part == "pod") hood();
+if (part == "deck") deck();
+if (part == "both") translate([deck_x, wall + 0.5, floor_t + deck_z]) deck(); // installed
 if (part == "both") {
   translate([0, 0, H + 1 + 30]) lid(); // exploded above the tray
   translate([ports[0][0], ports[0][1], -10]) mirror([0, 0, 1]) hood(); // exploded below the ports
 }
-echo(outer = [L, W, H]);
+echo(outer = [L, W, H], deck_z = deck_z, board_z = board_z, ledge_gap = in_w - 2*ledge_w);
